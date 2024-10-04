@@ -1,8 +1,5 @@
 package io.github.muhammadredin.tokonyadiaapi.controller;
 
-import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.response.CustomerResponse;
-import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
