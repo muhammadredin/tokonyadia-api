@@ -1,16 +1,14 @@
 package io.github.muhammadredin.tokonyadiaapi.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
+@Builder
 @Table(name = "product")
 public class Product {
     @Id
@@ -24,10 +22,10 @@ public class Product {
     private String description;
 
     @Column(name = "price", nullable = false)
-    private int price;
+    private Integer price;
 
     @Column(name = "stock", nullable = false)
-    private int stock;
+    private Integer stock;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "store_id", nullable = false)

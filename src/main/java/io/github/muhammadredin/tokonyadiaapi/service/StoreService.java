@@ -1,18 +1,25 @@
 package io.github.muhammadredin.tokonyadiaapi.service;
 
 
+import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface StoreService {
-    Store createStore(Store store);
+    StoreResponse createStore(StoreRequest store);
 
-    Store getStoreById(String id);
+    StoreResponse getStoreById(String id);
 
-    List<Store> getAllStore();
+    Store getStore(String id);
 
-    Store updateStore(String id, Store store);
+    Page<StoreResponse> getAllStore(PagingAndSortingRequest paging);
+
+    StoreResponse updateStore(String id, StoreRequest store);
 
     void deleteStore(String id);
 }

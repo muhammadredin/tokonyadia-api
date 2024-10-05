@@ -1,9 +1,19 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
+import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.CustomerResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
 import io.github.muhammadredin.tokonyadiaapi.repository.CustomerRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
+import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
+import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,36 +30,44 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Customer createCustomer(Customer customer) {
-        return customerRepository.save(customer);
+    public CustomerResponse createCustomer(CustomerRequest customer) {
+        return toCustomerResponse(customerRepository.save(toCustomer(customer)));
     }
 
     @Override
-    public Customer getCustomerById(String id) {
+    public CustomerResponse getCustomerById(String id) {
         Customer customer = customerRepository.findById(id).orElse(null);
         if (customer == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found");
         }
-        return customer;
+        return toCustomerResponse(customer);
     }
 
     @Override
-    public List<Customer> getAllCustomers() {
-        return customerRepository.findAll();
+    public Page<CustomerResponse> getAllCustomers(PagingAndSortingRequest request) {
+        try {
+            Sort sortBy = SortUtil.getSort(request.getSort());
+
+            Page<Customer> customers = customerRepository.findAll(PagingUtil.getPageable(request, sortBy));
+
+            return customers.map(this::toCustomerResponse);
+        } catch (PropertyReferenceException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @Override
-    public Customer updateCustomer(String id, Customer customer) {
-        Customer getCustomer = customerRepository.findById(id).orElse(null);
-        if (getCustomer == null) {
+    public CustomerResponse updateCustomer(String id, CustomerRequest customer) {
+        Customer updatedCustomer = customerRepository.findById(id).orElse(null);
+        if (updatedCustomer == null) {
             throw new RuntimeException("Customer not found");
         }
-        getCustomer.setName(customer.getName());
-        getCustomer.setAddress(customer.getAddress());
-        getCustomer.setEmail(customer.getEmail());
-        getCustomer.setPhoneNumber(customer.getPhoneNumber());
-        customerRepository.saveAndFlush(getCustomer);
-        return getCustomer;
+        updatedCustomer.setName(customer.getName());
+        updatedCustomer.setAddress(customer.getAddress());
+        updatedCustomer.setEmail(customer.getEmail());
+        updatedCustomer.setPhoneNumber(customer.getPhoneNumber());
+        customerRepository.save(updatedCustomer);
+        return toCustomerResponse(updatedCustomer);
     }
 
     @Override
@@ -61,5 +79,22 @@ public class CustomerServiceImpl implements CustomerService {
         customerRepository.delete(customer);
     }
 
+    private Customer toCustomer(CustomerRequest customer) {
+        return Customer.builder()
+                .name(customer.getName())
+                .address(customer.getAddress())
+                .email(customer.getEmail())
+                .phoneNumber(customer.getPhoneNumber())
+                .build();
+    }
 
+    private CustomerResponse toCustomerResponse(Customer customer) {
+        return CustomerResponse.builder()
+                .id(customer.getId())
+                .name(customer.getName())
+                .address(customer.getAddress())
+                .email(customer.getEmail())
+                .phoneNumber(customer.getPhoneNumber())
+                .build();
+    }
 }

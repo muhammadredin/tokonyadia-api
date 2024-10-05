@@ -1,8 +1,13 @@
 package io.github.muhammadredin.tokonyadiaapi.controller;
 
+import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
+import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,37 +23,66 @@ public class StoreController {
     }
 
     @GetMapping
-    public List<Store> getAllCustomersHandler() {
-        return storeService.getAllStore();
+    public ResponseEntity<?> getAllCustomersHandler(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String sort
+    ) {
+        PagingAndSortingRequest request = PagingAndSortingRequest.builder()
+                .page(page)
+                .size(size)
+                .sort(sort)
+                .build();
+        return ResponseUtil.buildResponsePaging(
+                HttpStatus.OK,
+                "Stores successfully fetched from database",
+                storeService.getAllStore(request)
+        );
     }
 
     @GetMapping("/{id}")
-    public Store getCustomerById(
+    public ResponseEntity<?> getCustomerById(
             @PathVariable String id
     ) {
-        return storeService.getStoreById(id);
+        return ResponseUtil.buildResponse(
+                HttpStatus.OK,
+                "Store successfully fetched from database",
+                storeService.getStoreById(id)
+        );
     }
 
     @PostMapping
-    public Store createCustomer(
-            @RequestBody Store store
+    public ResponseEntity<?> createCustomer(
+            @RequestBody StoreRequest store
     ) {
-        return storeService.createStore(store);
+        return ResponseUtil.buildResponse(
+                HttpStatus.CREATED,
+                "Store successfully created",
+                storeService.createStore(store)
+        );
     }
 
     @PutMapping("/{id}")
-    public Store updateCustomer(
+    public ResponseEntity<?> updateCustomer(
             @PathVariable String id,
-            @RequestBody Store store
+            @RequestBody StoreRequest store
     ) {
-        return storeService.updateStore(id, store);
+        return ResponseUtil.buildResponse(
+                HttpStatus.OK,
+                "Store successfully updated",
+                storeService.updateStore(id, store)
+        );
     }
 
     @DeleteMapping("/{id}")
-    public String deleteCustomer(
+    public ResponseEntity<?> deleteCustomer(
             @PathVariable String id
     ) {
         storeService.deleteStore(id);
-        return "Store successfully deleted";
+        return ResponseUtil.buildResponse(
+                HttpStatus.OK,
+                "Store successfully deleted",
+                null
+        );
     }
 }

@@ -1,10 +1,19 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 
+import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.repository.StoreRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
+import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
+import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,43 +30,76 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
-    public Store createStore(Store store) {
-        return storeRepository.save(store);
+    public StoreResponse createStore(StoreRequest store) {
+        return toStoreResponse(storeRepository.save(toStore(store)));
     }
 
     @Override
-    public Store getStoreById(String id) {
+    public StoreResponse getStoreById(String id) {
         Store store = storeRepository.findById(id).orElse(null);
         if (store == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Store not found");
+        }
+        return toStoreResponse(store);
+    }
+
+    @Override
+    public Store getStore(String id) {
+        Store store = storeRepository.findById(id).orElse(null);
+        if (store == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Store not found");
         }
         return store;
     }
 
+
     @Override
-    public List<Store> getAllStore() {
-        return storeRepository.findAll();
+    public Page<StoreResponse> getAllStore(PagingAndSortingRequest request) {
+        Sort sortBy = SortUtil.getSort(request.getSort());
+
+        Page<Store> stores = storeRepository.findAll(PagingUtil.getPageable(request, sortBy));
+
+        return stores.map(this::toStoreResponse);
     }
 
     @Override
-    public Store updateStore(String id, Store store) {
+    public StoreResponse updateStore(String id, StoreRequest store) {
         Store getStore = storeRepository.findById(id).orElse(null);
         if (getStore == null) {
-            throw new RuntimeException("Store not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Store not found");
         }
         getStore.setNoSiup(store.getNoSiup());
         getStore.setName(store.getName());
         getStore.setAddress(store.getAddress());
         getStore.setPhoneNumber(store.getPhoneNumber());
-        return storeRepository.save(getStore);
+        return toStoreResponse(storeRepository.save(getStore));
     }
 
     @Override
     public void deleteStore(String id) {
         Store store = storeRepository.findById(id).orElse(null);
         if (store == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Store not found");
         }
         storeRepository.delete(store);
+    }
+
+    private Store toStore(StoreRequest request) {
+        return Store.builder()
+                .noSiup(request.getNoSiup())
+                .name(request.getName())
+                .address(request.getAddress())
+                .phoneNumber(request.getPhoneNumber())
+                .build();
+    }
+
+    private StoreResponse toStoreResponse(Store response) {
+        return StoreResponse.builder()
+                .id(response.getId())
+                .noSiup(response.getNoSiup())
+                .name(response.getName())
+                .address(response.getAddress())
+                .phoneNumber(response.getPhoneNumber())
+                .build();
     }
 }

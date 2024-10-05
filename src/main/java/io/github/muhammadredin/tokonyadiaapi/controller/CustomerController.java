@@ -1,8 +1,15 @@
 package io.github.muhammadredin.tokonyadiaapi.controller;
 
+import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.CommonResponse;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.CustomerResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
+import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,37 +25,65 @@ public class CustomerController {
     }
 
     @GetMapping
-    public List<Customer> getAllCustomersHandler() {
-        return customerService.getAllCustomers();
+    public ResponseEntity<?> getAllCustomersHandler(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String sort
+    ) {
+        PagingAndSortingRequest request = PagingAndSortingRequest.builder()
+                .page(page)
+                .size(size)
+                .sort(sort)
+                .build();
+        return ResponseUtil.buildResponsePaging(
+                HttpStatus.OK,
+                "Customer successfully fetched from database",
+                customerService.getAllCustomers(request)
+        );
     }
 
     @GetMapping("/{id}")
-    public Customer getCustomerById(
+    public ResponseEntity<?> getCustomerById(
             @PathVariable String id
     ) {
-        return customerService.getCustomerById(id);
+        return ResponseUtil.buildResponse(
+                HttpStatus.OK,
+                "Customers successfully fetched from database",
+                customerService.getCustomerById(id));
     }
 
     @PostMapping
-    public Customer createCustomer(
-            @RequestBody Customer customer
+    public ResponseEntity<?> createCustomer(
+            @RequestBody CustomerRequest customer
     ) {
-        return customerService.createCustomer(customer);
+        return ResponseUtil.buildResponse(
+                HttpStatus.CREATED,
+                "Customer successfully created",
+                customerService.createCustomer(customer)
+        );
     }
 
     @PutMapping("/{id}")
-    public Customer updateCustomer(
+    public ResponseEntity<?> updateCustomer(
             @PathVariable String id,
-            @RequestBody Customer customer
+            @RequestBody CustomerRequest customer
     ) {
-        return customerService.updateCustomer(id, customer);
+        return ResponseUtil.buildResponse(
+                HttpStatus.OK,
+                "Customer successfully updated",
+                customerService.updateCustomer(id, customer)
+        );
     }
 
     @DeleteMapping("/{id}")
-    public String deleteCustomer(
+    public ResponseEntity<?> deleteCustomer(
             @PathVariable String id
     ) {
         customerService.deleteCustomer(id);
-        return "Customer successfully deleted";
+        return ResponseUtil.buildResponse(
+                HttpStatus.OK,
+                "Customer successfully deleted",
+                null
+        );
     }
 }

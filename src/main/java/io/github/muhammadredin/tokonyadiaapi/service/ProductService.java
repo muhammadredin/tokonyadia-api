@@ -1,17 +1,21 @@
 package io.github.muhammadredin.tokonyadiaapi.service;
 
+import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Product;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public interface ProductService {
-    Product createProduct(Product product);
+    ProductResponse createProduct(ProductRequest product);
 
-    Product getProductById(String id);
+    ProductResponse getProductById(String id);
 
-    List<Product> getAllStore();
+    Page<ProductResponse> getAllProduct(PagingAndSortingRequest request);
 
-    Product updateProduct(String id, Product product);
+    ProductResponse updateProduct(String id, ProductRequest product);
 
-    void deleteStore(String id);
+    void deleteProduct(String id);
 }
