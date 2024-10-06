@@ -3,6 +3,8 @@ package io.github.muhammadredin.tokonyadiaapi.controller;
 import io.github.muhammadredin.tokonyadiaapi.constant.ProductResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchProductRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +22,19 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @GetMapping
-    public ResponseEntity<?> getAllProductsHandler(
-                @RequestParam(defaultValue = "1") Integer page,
-                @RequestParam(defaultValue = "10") Integer size,
-                @RequestParam(required = false) String sort
-
+    @GetMapping("/search")
+    public ResponseEntity<?> searchProductsHandler(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Integer minPrice,
+            @RequestParam(required = false) Integer maxPrice,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String sort
     ) {
-        PagingAndSortingRequest request = PagingAndSortingRequest.builder()
+        SearchProductRequest request = SearchProductRequest.builder()
+                .query(q)
+                .minPrice(minPrice)
+                .maxPrice(maxPrice)
                 .page(page)
                 .size(size)
                 .sort(sort)
@@ -36,7 +43,7 @@ public class ProductController {
         return ResponseUtil.buildResponsePaging(
                 HttpStatus.OK,
                 ProductResponseMessage.PRODUCT_GET_SUCCESS,
-                productService.getAllProduct(request)
+                productService.searchProduct(request)
         );
     }
 

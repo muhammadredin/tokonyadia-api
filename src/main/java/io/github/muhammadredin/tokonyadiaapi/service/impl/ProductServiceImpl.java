@@ -2,6 +2,7 @@ package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.ProductResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchProductRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
 import io.github.muhammadredin.tokonyadiaapi.entity.Product;
@@ -9,11 +10,13 @@ import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.repository.ProductRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
+import io.github.muhammadredin.tokonyadiaapi.specification.ProductSpecification;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -46,10 +49,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductResponse> getAllProduct(PagingAndSortingRequest request) {
+    public Page<ProductResponse> searchProduct(SearchProductRequest request) {
         Sort sortBy = SortUtil.getSort(request.getSort());
 
-        Page<Product> productPage = productRepository.findAll(PagingUtil.getPageable(request, sortBy));
+        Specification<Product> specification = ProductSpecification.product(request);
+        Page<Product> productPage = productRepository.findAll(specification, PagingUtil.getPageable(request, sortBy));
         return productPage.map(this::toProductResponse);
     }
 

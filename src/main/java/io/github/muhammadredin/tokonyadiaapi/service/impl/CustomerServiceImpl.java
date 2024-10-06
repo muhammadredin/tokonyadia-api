@@ -3,10 +3,12 @@ package io.github.muhammadredin.tokonyadiaapi.service.impl;
 import io.github.muhammadredin.tokonyadiaapi.constant.CustomerResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchCustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.CustomerResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
 import io.github.muhammadredin.tokonyadiaapi.repository.CustomerRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
+import io.github.muhammadredin.tokonyadiaapi.specification.CustomerSpecification;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -45,11 +48,12 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Page<CustomerResponse> getAllCustomers(PagingAndSortingRequest request) {
+    public Page<CustomerResponse> searchCustomers(SearchCustomerRequest request) {
         try {
             Sort sortBy = SortUtil.getSort(request.getSort());
 
-            Page<Customer> customers = customerRepository.findAll(PagingUtil.getPageable(request, sortBy));
+            Specification<Customer> specification = CustomerSpecification.customer(request);
+            Page<Customer> customers = customerRepository.findAll(specification, PagingUtil.getPageable(request, sortBy));
 
             return customers.map(this::toCustomerResponse);
         } catch (PropertyReferenceException e) {

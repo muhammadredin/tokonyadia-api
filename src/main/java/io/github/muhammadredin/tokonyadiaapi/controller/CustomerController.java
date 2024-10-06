@@ -3,6 +3,7 @@ package io.github.muhammadredin.tokonyadiaapi.controller;
 import io.github.muhammadredin.tokonyadiaapi.constant.CustomerResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchCustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,21 +21,22 @@ public class CustomerController {
         this.customerService = customerService;
     }
 
-    @GetMapping
-    public ResponseEntity<?> getAllCustomersHandler(
+    @GetMapping("/search")
+    public ResponseEntity<?> searchCustomersHandler(
+            @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String sort
     ) {
-        PagingAndSortingRequest request = PagingAndSortingRequest.builder()
+        SearchCustomerRequest request = SearchCustomerRequest.builder()
+                .query(q)
                 .page(page)
                 .size(size)
-                .sort(sort)
                 .build();
         return ResponseUtil.buildResponsePaging(
                 HttpStatus.OK,
                 CustomerResponseMessage.CUSTOMER_GET_SUCCESS,
-                customerService.getAllCustomers(request)
+                customerService.searchCustomers(request)
         );
     }
 

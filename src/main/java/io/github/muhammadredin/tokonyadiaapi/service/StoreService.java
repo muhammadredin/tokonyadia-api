@@ -2,6 +2,7 @@ package io.github.muhammadredin.tokonyadiaapi.service;
 
 
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
@@ -17,7 +18,7 @@ public interface StoreService {
 
     Store getStore(String id);
 
-    Page<StoreResponse> getAllStore(PagingAndSortingRequest paging);
+    Page<StoreResponse> getAllStore(SearchStoreRequest request);
 
     StoreResponse updateStore(String id, StoreRequest store);
 

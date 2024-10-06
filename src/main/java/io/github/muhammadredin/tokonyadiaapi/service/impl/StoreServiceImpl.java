@@ -2,11 +2,13 @@ package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.repository.StoreRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
+import io.github.muhammadredin.tokonyadiaapi.specification.StoreSpecification;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -54,10 +57,11 @@ public class StoreServiceImpl implements StoreService {
 
 
     @Override
-    public Page<StoreResponse> getAllStore(PagingAndSortingRequest request) {
+    public Page<StoreResponse> getAllStore(SearchStoreRequest request) {
         Sort sortBy = SortUtil.getSort(request.getSort());
 
-        Page<Store> stores = storeRepository.findAll(PagingUtil.getPageable(request, sortBy));
+        Specification<Store> specification = StoreSpecification.store(request);
+        Page<Store> stores = storeRepository.findAll(specification, PagingUtil.getPageable(request, sortBy));
 
         return stores.map(this::toStoreResponse);
     }

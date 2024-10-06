@@ -2,6 +2,7 @@ package io.github.muhammadredin.tokonyadiaapi.service;
 
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchProductRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Product;
 import org.springframework.data.domain.Page;
@@ -13,7 +14,7 @@ public interface ProductService {
 
     ProductResponse getProductById(String id);
 
-    Page<ProductResponse> getAllProduct(PagingAndSortingRequest request);
+    Page<ProductResponse> searchProduct(SearchProductRequest request);
 
     ProductResponse updateProduct(String id, ProductRequest product);
 

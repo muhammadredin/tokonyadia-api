@@ -2,6 +2,7 @@ package io.github.muhammadredin.tokonyadiaapi.controller;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.StoreResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
@@ -20,13 +21,15 @@ public class StoreController {
         this.storeService = storeService;
     }
 
-    @GetMapping
-    public ResponseEntity<?> getAllCustomersHandler(
+    @GetMapping("/search")
+    public ResponseEntity<?> searchStoresHandler(
+            @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String sort
     ) {
-        PagingAndSortingRequest request = PagingAndSortingRequest.builder()
+        SearchStoreRequest request = SearchStoreRequest.builder()
+                .query(q)
                 .page(page)
                 .size(size)
                 .sort(sort)
@@ -39,7 +42,7 @@ public class StoreController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCustomerById(
+    public ResponseEntity<?> getStoresById(
             @PathVariable String id
     ) {
         return ResponseUtil.buildResponse(
@@ -50,7 +53,7 @@ public class StoreController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createCustomer(
+    public ResponseEntity<?> createStore(
             @RequestBody StoreRequest store
     ) {
         return ResponseUtil.buildResponse(
@@ -61,7 +64,7 @@ public class StoreController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCustomer(
+    public ResponseEntity<?> updateStore(
             @PathVariable String id,
             @RequestBody StoreRequest store
     ) {
@@ -73,7 +76,7 @@ public class StoreController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCustomer(
+    public ResponseEntity<?> deleteStore(
             @PathVariable String id
     ) {
         storeService.deleteStore(id);

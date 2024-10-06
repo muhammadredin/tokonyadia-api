@@ -5,11 +5,9 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @SuperBuilder
-public class PagingAndSortingRequest {
-    private Integer page;
-    private Integer size;
-    private String sort;
+public class SearchCustomerRequest extends PagingAndSortingRequest {
+    private String query;
 }
