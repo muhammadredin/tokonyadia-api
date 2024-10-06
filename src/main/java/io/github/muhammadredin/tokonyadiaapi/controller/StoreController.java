@@ -1,16 +1,14 @@
 package io.github.muhammadredin.tokonyadiaapi.controller;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.StoreResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
-import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/stores")
@@ -35,7 +33,7 @@ public class StoreController {
                 .build();
         return ResponseUtil.buildResponsePaging(
                 HttpStatus.OK,
-                "Stores successfully fetched from database",
+                StoreResponseMessage.STORE_GET_SUCCESS,
                 storeService.getAllStore(request)
         );
     }
@@ -46,7 +44,7 @@ public class StoreController {
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
-                "Store successfully fetched from database",
+                StoreResponseMessage.STORE_GET_SUCCESS,
                 storeService.getStoreById(id)
         );
     }
@@ -57,7 +55,7 @@ public class StoreController {
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.CREATED,
-                "Store successfully created",
+                StoreResponseMessage.STORE_CREATE_SUCCESS,
                 storeService.createStore(store)
         );
     }
@@ -69,7 +67,7 @@ public class StoreController {
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
-                "Store successfully updated",
+                StoreResponseMessage.STORE_UPDATE_SUCCESS,
                 storeService.updateStore(id, store)
         );
     }
@@ -81,7 +79,7 @@ public class StoreController {
         storeService.deleteStore(id);
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
-                "Store successfully deleted",
+                StoreResponseMessage.STORE_DELETE_SUCCESS,
                 null
         );
     }

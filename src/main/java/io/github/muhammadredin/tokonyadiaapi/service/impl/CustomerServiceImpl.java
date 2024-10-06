@@ -1,5 +1,6 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.CustomerResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.CustomerResponse;
@@ -38,7 +39,7 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerResponse getCustomerById(String id) {
         Customer customer = customerRepository.findById(id).orElse(null);
         if (customer == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, CustomerResponseMessage.CUSTOMER_NOT_FOUND);
         }
         return toCustomerResponse(customer);
     }
@@ -60,7 +61,7 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerResponse updateCustomer(String id, CustomerRequest customer) {
         Customer updatedCustomer = customerRepository.findById(id).orElse(null);
         if (updatedCustomer == null) {
-            throw new RuntimeException("Customer not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, CustomerResponseMessage.CUSTOMER_NOT_FOUND);
         }
         updatedCustomer.setName(customer.getName());
         updatedCustomer.setAddress(customer.getAddress());
@@ -74,7 +75,7 @@ public class CustomerServiceImpl implements CustomerService {
     public void deleteCustomer(String id) {
         Customer customer = customerRepository.findById(id).orElse(null);
         if (customer == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, CustomerResponseMessage.CUSTOMER_NOT_FOUND);
         }
         customerRepository.delete(customer);
     }

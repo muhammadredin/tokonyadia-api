@@ -1,5 +1,6 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.ProductResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
@@ -16,8 +17,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -41,7 +40,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse getProductById(String id) {
         Product product = productRepository.findById(id).orElse(null);
         if (product == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ProductResponseMessage.PRODUCT_NOT_FOUND);
         }
         return toProductResponse(product);
     }
@@ -60,7 +59,7 @@ public class ProductServiceImpl implements ProductService {
 
         Product getProduct = productRepository.findById(id).orElse(null);
         if (getProduct == null) {
-            throw new RuntimeException("Product not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ProductResponseMessage.PRODUCT_NOT_FOUND);
         }
 
         getProduct.setName(product.getName());
@@ -76,7 +75,7 @@ public class ProductServiceImpl implements ProductService {
     public void deleteProduct(String id) {
         Product product = productRepository.findById(id).orElse(null);
         if (product == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ProductResponseMessage.PRODUCT_NOT_FOUND);
         }
         productRepository.delete(product);
     }

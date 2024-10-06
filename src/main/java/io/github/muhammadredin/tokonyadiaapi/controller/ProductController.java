@@ -1,16 +1,14 @@
 package io.github.muhammadredin.tokonyadiaapi.controller;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.ProductResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
-import io.github.muhammadredin.tokonyadiaapi.entity.Product;
 import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -37,7 +35,7 @@ public class ProductController {
 
         return ResponseUtil.buildResponsePaging(
                 HttpStatus.OK,
-                "Products successfully fetched from database",
+                ProductResponseMessage.PRODUCT_GET_SUCCESS,
                 productService.getAllProduct(request)
         );
     }
@@ -48,7 +46,7 @@ public class ProductController {
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
-                "Product successfully fetched from database",
+                ProductResponseMessage.PRODUCT_GET_SUCCESS,
                 productService.getProductById(id)
         );
     }
@@ -59,7 +57,7 @@ public class ProductController {
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.CREATED,
-                "Product successfully created",
+                ProductResponseMessage.PRODUCT_CREATE_SUCCESS,
                 productService.createProduct(product)
         );
     }
@@ -71,7 +69,7 @@ public class ProductController {
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
-                "Product successfully updated",
+                ProductResponseMessage.PRODUCT_UPDATE_SUCCESS,
                 productService.updateProduct(id, product)
         );
     }
@@ -83,7 +81,7 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
-                "Product successfully deleted",
+                ProductResponseMessage.PRODUCT_DELETE_SUCCESS,
                 null
         );
     }

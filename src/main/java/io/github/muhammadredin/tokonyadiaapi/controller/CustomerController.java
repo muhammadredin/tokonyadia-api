@@ -1,18 +1,14 @@
 package io.github.muhammadredin.tokonyadiaapi.controller;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.CustomerResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.response.CommonResponse;
-import io.github.muhammadredin.tokonyadiaapi.dto.response.CustomerResponse;
-import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -37,7 +33,7 @@ public class CustomerController {
                 .build();
         return ResponseUtil.buildResponsePaging(
                 HttpStatus.OK,
-                "Customer successfully fetched from database",
+                CustomerResponseMessage.CUSTOMER_GET_SUCCESS,
                 customerService.getAllCustomers(request)
         );
     }
@@ -48,7 +44,7 @@ public class CustomerController {
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
-                "Customers successfully fetched from database",
+                CustomerResponseMessage.CUSTOMER_GET_SUCCESS,
                 customerService.getCustomerById(id));
     }
 
@@ -58,7 +54,7 @@ public class CustomerController {
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.CREATED,
-                "Customer successfully created",
+                CustomerResponseMessage.CUSTOMER_CREATE_SUCCESS,
                 customerService.createCustomer(customer)
         );
     }
@@ -70,7 +66,7 @@ public class CustomerController {
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
-                "Customer successfully updated",
+                CustomerResponseMessage.CUSTOMER_UPDATE_SUCCESS,
                 customerService.updateCustomer(id, customer)
         );
     }
@@ -82,7 +78,7 @@ public class CustomerController {
         customerService.deleteCustomer(id);
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
-                "Customer successfully deleted",
+                CustomerResponseMessage.CUSTOMER_DELETE_SUCCESS,
                 null
         );
     }
