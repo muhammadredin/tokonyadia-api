@@ -23,11 +23,9 @@ public class Customer {
     @Column(name = "address", nullable = false)
     private String address;
 
-    @Column(name = "phone_number", nullable = false, unique = true)
-    private String phoneNumber;
-
-    @Column(name = "email", nullable = false, unique = true)
-    private String email;
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    private UserAccount userAccount;
 
     @OneToMany(mappedBy = "customer", fetch = FetchType.EAGER)
     private List<Transaction> transactions;

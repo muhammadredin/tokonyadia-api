@@ -1,9 +1,8 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
-
-import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.repository.StoreRepository;
@@ -13,8 +12,6 @@ import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -98,12 +95,35 @@ public class StoreServiceImpl implements StoreService {
     }
 
     private StoreResponse toStoreResponse(Store response) {
+        if (response.getProducts() == null) {
+            return StoreResponse.builder()
+                    .id(response.getId())
+                    .noSiup(response.getNoSiup())
+                    .name(response.getName())
+                    .address(response.getAddress())
+                    .phoneNumber(response.getPhoneNumber())
+                    .build();
+        }
+
         return StoreResponse.builder()
                 .id(response.getId())
                 .noSiup(response.getNoSiup())
                 .name(response.getName())
                 .address(response.getAddress())
                 .phoneNumber(response.getPhoneNumber())
+                .products(
+                        response.getProducts().stream()
+                                .map(
+                                        product -> ProductResponse.builder()
+                                                .id(product.getId())
+                                                .name(product.getName())
+                                                .price(product.getPrice())
+                                                .stock(product.getStock())
+                                                .description(product.getDescription())
+                                                .storeName(response.getName())
+                                                .build())
+                                .toList()
+                )
                 .build();
     }
 }

@@ -69,8 +69,6 @@ public class CustomerServiceImpl implements CustomerService {
         }
         updatedCustomer.setName(customer.getName());
         updatedCustomer.setAddress(customer.getAddress());
-        updatedCustomer.setEmail(customer.getEmail());
-        updatedCustomer.setPhoneNumber(customer.getPhoneNumber());
         customerRepository.save(updatedCustomer);
         return toCustomerResponse(updatedCustomer);
     }
@@ -88,8 +86,6 @@ public class CustomerServiceImpl implements CustomerService {
         return Customer.builder()
                 .name(customer.getName())
                 .address(customer.getAddress())
-                .email(customer.getEmail())
-                .phoneNumber(customer.getPhoneNumber())
                 .build();
     }
 
@@ -98,8 +94,6 @@ public class CustomerServiceImpl implements CustomerService {
                 .id(customer.getId())
                 .name(customer.getName())
                 .address(customer.getAddress())
-                .email(customer.getEmail())
-                .phoneNumber(customer.getPhoneNumber())
                 .build();
     }
 }
