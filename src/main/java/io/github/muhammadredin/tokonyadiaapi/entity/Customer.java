@@ -24,7 +24,7 @@ public class Customer {
     private String address;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private UserAccount userAccount;
 
     @OneToMany(mappedBy = "customer", fetch = FetchType.EAGER)

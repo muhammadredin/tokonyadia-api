@@ -9,6 +9,7 @@ import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -41,6 +42,7 @@ public class StoreController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.storeServiceEval(#id)")
     @GetMapping("/{id}")
     public ResponseEntity<?> getStoresById(
             @PathVariable String id
@@ -52,6 +54,7 @@ public class StoreController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @PostMapping
     public ResponseEntity<?> createStore(
             @RequestBody StoreRequest store
@@ -63,6 +66,7 @@ public class StoreController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.storeServiceEval(#id)")
     @PutMapping("/{id}")
     public ResponseEntity<?> updateStore(
             @PathVariable String id,
@@ -75,6 +79,7 @@ public class StoreController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.storeServiceEval(#id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteStore(
             @PathVariable String id

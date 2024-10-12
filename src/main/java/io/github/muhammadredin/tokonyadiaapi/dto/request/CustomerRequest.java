@@ -12,5 +12,4 @@ import lombok.Setter;
 public class CustomerRequest {
     private String name;
     private String address;
-    private String userId;
 }

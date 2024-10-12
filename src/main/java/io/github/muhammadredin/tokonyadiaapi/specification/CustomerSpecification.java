@@ -14,11 +14,7 @@ public class CustomerSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             if (request.getQuery() != null) {
-                Predicate queryPredicate = criteriaBuilder.or(
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), request.getQuery().toLowerCase() + "%"),
-                        criteriaBuilder.equal(root.get("phoneNumber"), request.getQuery())
-                );
-                predicates.add(queryPredicate);
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), request.getQuery().toLowerCase() + "%"));
             }
 
             if (predicates.isEmpty()) return criteriaBuilder.conjunction();

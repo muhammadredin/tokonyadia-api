@@ -29,6 +29,10 @@ public class Store {
     @Column(name = "address", nullable = false)
     private String address;
 
-    @OneToMany(mappedBy = "store",fetch = FetchType.LAZY)
+    @OneToOne
+    @JoinColumn(name = "user_id", unique = true)
+    private UserAccount userAccount;
+
+    @OneToMany(mappedBy = "store", fetch = FetchType.LAZY)
     private List<Product> products;
 }

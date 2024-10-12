@@ -8,8 +8,8 @@ import io.github.muhammadredin.tokonyadiaapi.dto.response.CustomerResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.CustomerRepository;
+import io.github.muhammadredin.tokonyadiaapi.service.AuthService;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
-import io.github.muhammadredin.tokonyadiaapi.service.UserAccountService;
 import io.github.muhammadredin.tokonyadiaapi.specification.CustomerSpecification;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
@@ -26,7 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
-    private final UserAccountService userAccountService;
+    private final AuthService authService;
 
     @Override
     public CustomerResponse createCustomer(CustomerRequest customer) {
@@ -74,11 +74,14 @@ public class CustomerServiceImpl implements CustomerService {
         customerRepository.delete(customer);
     }
 
-    private Customer toCustomer(CustomerRequest customer) {
-        UserAccount account = userAccountService.getOne(customer.getUserId());
+    private Customer toCustomer(CustomerRequest request) {
+        UserAccount account = authService.getAuthentication();
+        if (customerRepository.existsByUserAccount(account)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Customer with this user already exists");
+        }
         return Customer.builder()
-                .name(customer.getName())
-                .address(customer.getAddress())
+                .name(request.getName())
+                .address(request.getAddress())
                 .userAccount(account)
                 .build();
     }

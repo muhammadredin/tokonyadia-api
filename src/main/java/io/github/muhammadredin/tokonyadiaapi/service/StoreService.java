@@ -5,6 +5,7 @@ import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreResponse;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreWithProductsResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +16,8 @@ public interface StoreService {
     StoreResponse createStore(StoreRequest store);
 
     StoreResponse getStoreById(String id);
+
+    StoreWithProductsResponse getStoreByIdWithProducts(String id);
 
     Store getOne(String id);
 
