@@ -6,4 +6,5 @@ public class CustomerResponseMessage {
     public static final String CUSTOMER_UPDATE_SUCCESS = "Customer successfully updated";
     public static final String CUSTOMER_DELETE_SUCCESS = "Customer successfully deleted";
     public static final String CUSTOMER_NOT_FOUND = "Customer not found";
+    public static final String CUSTOMER_ALREADY_EXISTS = "Customer with this user already exists";
 }

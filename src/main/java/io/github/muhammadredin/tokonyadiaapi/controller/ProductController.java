@@ -1,10 +1,9 @@
 package io.github.muhammadredin.tokonyadiaapi.controller;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.APIPath;
 import io.github.muhammadredin.tokonyadiaapi.constant.ProductResponseMessage;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchProductRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping(APIPath.PRODUCT_API)
 public class ProductController {
     private final ProductService productService;
 

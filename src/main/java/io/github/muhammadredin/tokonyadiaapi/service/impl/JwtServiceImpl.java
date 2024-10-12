@@ -6,6 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import io.github.muhammadredin.tokonyadiaapi.constant.JWTResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.service.JwtService;
 import lombok.extern.slf4j.Slf4j;
@@ -71,7 +72,7 @@ public class JwtServiceImpl implements JwtService {
             return true;
         } catch (JWTVerificationException e) {
             log.error("Error Validating JWT Token: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid JWT Token");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, JWTResponseMessage.INVALID_JWT_ERROR);
         }
     }
 
@@ -87,7 +88,7 @@ public class JwtServiceImpl implements JwtService {
             return jwt.getSubject();
         } catch (JWTVerificationException e) {
             log.error("Error Extracting User ID From JWT Token: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid JWT Token");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, JWTResponseMessage.INVALID_JWT_ERROR);
         }
     }
 }

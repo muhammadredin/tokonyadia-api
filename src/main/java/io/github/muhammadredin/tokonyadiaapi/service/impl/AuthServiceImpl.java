@@ -1,5 +1,6 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.UserResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.LoginRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.LoginResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
@@ -35,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
             Authentication authentication = authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(request.getCredential(), request.getPassword()));
             log.info("Authentication success: {}", authentication);
-            if (!authentication.isAuthenticated()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bad Credentials");
+            if (!authentication.isAuthenticated()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, UserResponseMessage.USER_LOGIN_ERROR);
 
             UserAccount userAccount = (UserAccount) authentication.getPrincipal();
             String token = jwtService.generateToken(userAccount);

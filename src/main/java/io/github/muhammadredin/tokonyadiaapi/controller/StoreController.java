@@ -1,7 +1,7 @@
 package io.github.muhammadredin.tokonyadiaapi.controller;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.APIPath;
 import io.github.muhammadredin.tokonyadiaapi.constant.StoreResponseMessage;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
@@ -13,7 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/stores")
+@RequestMapping(APIPath.STORE_API)
 public class StoreController {
     private final StoreService storeService;
 

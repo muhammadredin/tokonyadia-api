@@ -1,12 +1,15 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.UserResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.constant.UserRole;
+import io.github.muhammadredin.tokonyadiaapi.constant.ValidationErrorMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.UserAccountRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.UserResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.UserAccountRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.UserAccountService;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -55,15 +58,15 @@ public class UserAccountServiceImpl implements UserAccountService {
         if (userAccount.isPresent()) return userAccount.get();
 
 
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, UserResponseMessage.USER_NOT_FOUND_ERROR);
     }
 
     private List<String> checkUserAccount (UserAccount userAccount) {
         List<String> errors = new ArrayList<>();
 
-        if (userAccountRepository.findByUsername(userAccount.getUsername()).isPresent()) errors.add("Username already exists");
-        if (userAccountRepository.findByEmail(userAccount.getEmail()).isPresent()) errors.add("Email already exists");
-        if (userAccountRepository.findByPhoneNumber(userAccount.getPhoneNumber()).isPresent()) errors.add("Phone number already exists");
+        if (userAccountRepository.findByUsername(userAccount.getUsername()).isPresent()) errors.add(ValidationErrorMessage.USERNAME_EXIST);
+        if (userAccountRepository.findByEmail(userAccount.getEmail()).isPresent()) errors.add(ValidationErrorMessage.EMAIL_EXIST);
+        if (userAccountRepository.findByPhoneNumber(userAccount.getPhoneNumber()).isPresent()) errors.add(ValidationErrorMessage.PHONE_NUMBER_EXIST);
 
         return errors;
     }

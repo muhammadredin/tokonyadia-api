@@ -6,7 +6,6 @@ import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerUpdateRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchCustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.CustomerResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
-import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.CustomerRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.AuthService;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
@@ -22,6 +21,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
@@ -30,6 +32,10 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerResponse createCustomer(CustomerRequest customer) {
+        List<String> errors = checkCustomer();
+
+        if (!errors.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
+
         return toCustomerResponse(customerRepository.save(toCustomer(customer)));
     }
 
@@ -74,15 +80,17 @@ public class CustomerServiceImpl implements CustomerService {
         customerRepository.delete(customer);
     }
 
+    private List<String> checkCustomer() {
+        List<String> errors = new ArrayList<>();
+        if (customerRepository.existsByUserAccount(authService.getAuthentication())) errors.add(CustomerResponseMessage.CUSTOMER_ALREADY_EXISTS);
+        return errors;
+    }
+
     private Customer toCustomer(CustomerRequest request) {
-        UserAccount account = authService.getAuthentication();
-        if (customerRepository.existsByUserAccount(account)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Customer with this user already exists");
-        }
         return Customer.builder()
                 .name(request.getName())
                 .address(request.getAddress())
-                .userAccount(account)
+                .userAccount(authService.getAuthentication())
                 .build();
     }
 

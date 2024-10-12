@@ -1,17 +1,15 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.StoreResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreWithProductsResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
-import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.StoreRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.AuthService;
-import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
-import io.github.muhammadredin.tokonyadiaapi.service.UserAccountService;
 import io.github.muhammadredin.tokonyadiaapi.specification.StoreSpecification;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
@@ -30,15 +28,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StoreServiceImpl implements StoreService {
     private final StoreRepository storeRepository;
-    private final UserAccountService userAccountService;
     private final AuthService authService;
 
     @Override
     public StoreResponse createStore(StoreRequest store) {
         List<String> errors = checkStore(store.getNoSiup(), store.getName());
-        if (!errors.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
-        }
+
+        if (!errors.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
 
         return toStoreResponse(storeRepository.save(toStore(store)));
     }
@@ -58,7 +54,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public Store getOne(String id) {
         return storeRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Store not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, StoreResponseMessage.STORE_NOT_FOUND_ERROR));
     }
 
 
@@ -91,11 +87,9 @@ public class StoreServiceImpl implements StoreService {
         List<String> errors = new ArrayList<>();
 
         if (storeRepository.existsByUserAccount(authService.getAuthentication()))
-            errors.add("Store with this account already exists");
-
-        if (storeRepository.existsByNoSiup(noSiup)) errors.add("Store with this no siup already exists");
-
-        if (storeRepository.existsByPhoneNumber(phoneNumber)) errors.add("Store with this phone number already exists");
+            errors.add(StoreResponseMessage.STORE_ACCOUNT_EXIST_ERROR);
+        if (storeRepository.existsByNoSiup(noSiup)) errors.add(StoreResponseMessage.STORE_NO_SIUP_EXIST_ERROR);
+        if (storeRepository.existsByPhoneNumber(phoneNumber)) errors.add(StoreResponseMessage.STORE_PHONE_NUMBER_EXIST_ERROR);
 
         return errors;
     }

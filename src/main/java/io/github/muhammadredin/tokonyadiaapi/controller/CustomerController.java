@@ -1,21 +1,20 @@
 package io.github.muhammadredin.tokonyadiaapi.controller;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.APIPath;
 import io.github.muhammadredin.tokonyadiaapi.constant.CustomerResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerUpdateRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchCustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/customers")
+@RequestMapping(APIPath.CUSTOMER_API)
 @RequiredArgsConstructor
 public class CustomerController {
     private final CustomerService customerService;
