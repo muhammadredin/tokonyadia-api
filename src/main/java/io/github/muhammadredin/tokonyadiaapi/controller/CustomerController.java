@@ -2,6 +2,7 @@ package io.github.muhammadredin.tokonyadiaapi.controller;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.CustomerResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerUpdateRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchCustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
@@ -64,7 +65,7 @@ public class CustomerController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateCustomer(
             @PathVariable String id,
-            @RequestBody CustomerRequest customer
+            @RequestBody CustomerUpdateRequest customer
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,

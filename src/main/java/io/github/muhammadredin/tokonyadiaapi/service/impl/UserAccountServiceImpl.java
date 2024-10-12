@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,7 +35,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 
     @Override
-    public UserAccount getById(String id) {
+    public UserAccount getOne(String id) {
         return (UserAccount) loadUserByUsername(id);
     }
 
@@ -50,6 +49,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 
         userAccount = userAccountRepository.findByPhoneNumber(credential);
         if (userAccount.isPresent()) return userAccount.get();
+
+        userAccount = userAccountRepository.findById(credential);
+        if (userAccount.isPresent()) return userAccount.get();
+
 
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
     }

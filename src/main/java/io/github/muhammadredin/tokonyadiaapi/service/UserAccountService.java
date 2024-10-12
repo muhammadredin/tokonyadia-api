@@ -8,5 +8,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface UserAccountService extends UserDetailsService {
     void createUserAccount(UserAccountRequest userAccount);
-    UserAccount getById(String id);
+
+    UserAccount getOne(String id);
 }

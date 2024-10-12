@@ -3,15 +3,13 @@ package io.github.muhammadredin.tokonyadiaapi.dto.response;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-public class StoreResponse {
-    private String id;
-    private String noSiup;
-    private String name;
-    private String address;
-    private String phoneNumber;
+public class StoreWithProductsResponse extends StoreResponse {
+    private List<ProductResponse> products;
 }

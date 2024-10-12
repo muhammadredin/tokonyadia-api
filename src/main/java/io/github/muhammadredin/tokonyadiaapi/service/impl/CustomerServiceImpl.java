@@ -2,19 +2,19 @@ package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.CustomerResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerUpdateRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchCustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.CustomerResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
+import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.CustomerRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
+import io.github.muhammadredin.tokonyadiaapi.service.UserAccountService;
 import io.github.muhammadredin.tokonyadiaapi.specification.CustomerSpecification;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.mapping.PropertyReferenceException;
@@ -22,16 +22,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-
 @Service
+@RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
-
-    @Autowired
-    public CustomerServiceImpl(CustomerRepository customerRepository) {
-        this.customerRepository = customerRepository;
-    }
+    private final UserAccountService userAccountService;
 
     @Override
     public CustomerResponse createCustomer(CustomerRequest customer) {
@@ -39,11 +34,14 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public Customer getOne(String id) {
+        return customerRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, CustomerResponseMessage.CUSTOMER_NOT_FOUND));
+    }
+
+    @Override
     public CustomerResponse getCustomerById(String id) {
-        Customer customer = customerRepository.findById(id).orElse(null);
-        if (customer == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, CustomerResponseMessage.CUSTOMER_NOT_FOUND);
-        }
+        Customer customer = getOne(id);
         return toCustomerResponse(customer);
     }
 
@@ -62,11 +60,8 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public CustomerResponse updateCustomer(String id, CustomerRequest customer) {
-        Customer updatedCustomer = customerRepository.findById(id).orElse(null);
-        if (updatedCustomer == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, CustomerResponseMessage.CUSTOMER_NOT_FOUND);
-        }
+    public CustomerResponse updateCustomer(String id, CustomerUpdateRequest customer) {
+        Customer updatedCustomer = getOne(id);
         updatedCustomer.setName(customer.getName());
         updatedCustomer.setAddress(customer.getAddress());
         customerRepository.save(updatedCustomer);
@@ -75,17 +70,16 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public void deleteCustomer(String id) {
-        Customer customer = customerRepository.findById(id).orElse(null);
-        if (customer == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, CustomerResponseMessage.CUSTOMER_NOT_FOUND);
-        }
+        Customer customer = getOne(id);
         customerRepository.delete(customer);
     }
 
     private Customer toCustomer(CustomerRequest customer) {
+        UserAccount account = userAccountService.getOne(customer.getUserId());
         return Customer.builder()
                 .name(customer.getName())
                 .address(customer.getAddress())
+                .userAccount(account)
                 .build();
     }
 

@@ -2,7 +2,6 @@ package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.repository.StoreRepository;
@@ -17,8 +16,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @Service
 public class StoreServiceImpl implements StoreService {
@@ -36,20 +33,14 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     public StoreResponse getStoreById(String id) {
-        Store store = storeRepository.findById(id).orElse(null);
-        if (store == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Store not found");
-        }
+        Store store = getOne(id);
         return toStoreResponse(store);
     }
 
     @Override
-    public Store getStore(String id) {
-        Store store = storeRepository.findById(id).orElse(null);
-        if (store == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Store not found");
-        }
-        return store;
+    public Store getOne(String id) {
+        return storeRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Store not found"));
     }
 
 
@@ -64,25 +55,18 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
-    public StoreResponse updateStore(String id, StoreRequest store) {
-        Store getStore = storeRepository.findById(id).orElse(null);
-        if (getStore == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Store not found");
-        }
-        getStore.setNoSiup(store.getNoSiup());
-        getStore.setName(store.getName());
-        getStore.setAddress(store.getAddress());
-        getStore.setPhoneNumber(store.getPhoneNumber());
-        return toStoreResponse(storeRepository.save(getStore));
+    public StoreResponse updateStore(String id, StoreRequest request) {
+        Store store = getOne(id);
+        store.setNoSiup(request.getNoSiup());
+        store.setName(request.getName());
+        store.setAddress(request.getAddress());
+        store.setPhoneNumber(request.getPhoneNumber());
+        return toStoreResponse(storeRepository.save(store));
     }
 
     @Override
     public void deleteStore(String id) {
-        Store store = storeRepository.findById(id).orElse(null);
-        if (store == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Store not found");
-        }
-        storeRepository.delete(store);
+        storeRepository.delete(getOne(id));
     }
 
     private Store toStore(StoreRequest request) {
@@ -95,35 +79,12 @@ public class StoreServiceImpl implements StoreService {
     }
 
     private StoreResponse toStoreResponse(Store response) {
-        if (response.getProducts() == null) {
-            return StoreResponse.builder()
-                    .id(response.getId())
-                    .noSiup(response.getNoSiup())
-                    .name(response.getName())
-                    .address(response.getAddress())
-                    .phoneNumber(response.getPhoneNumber())
-                    .build();
-        }
-
         return StoreResponse.builder()
                 .id(response.getId())
                 .noSiup(response.getNoSiup())
                 .name(response.getName())
                 .address(response.getAddress())
                 .phoneNumber(response.getPhoneNumber())
-                .products(
-                        response.getProducts().stream()
-                                .map(
-                                        product -> ProductResponse.builder()
-                                                .id(product.getId())
-                                                .name(product.getName())
-                                                .price(product.getPrice())
-                                                .stock(product.getStock())
-                                                .description(product.getDescription())
-                                                .storeName(response.getName())
-                                                .build())
-                                .toList()
-                )
                 .build();
     }
 }

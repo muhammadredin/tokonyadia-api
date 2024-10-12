@@ -16,7 +16,7 @@ public interface StoreService {
 
     StoreResponse getStoreById(String id);
 
-    Store getStore(String id);
+    Store getOne(String id);
 
     Page<StoreResponse> getAllStore(SearchStoreRequest request);
 

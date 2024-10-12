@@ -34,7 +34,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse createProduct(ProductRequest product) {
-        Store store = storeService.getStore(product.getStoreId());
+        Store store = storeService.getOne(product.getStoreId());
 
         return toProductResponse(productRepository.save(toProduct(product, store)));
     }
@@ -59,7 +59,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse updateProduct(String id, ProductRequest product) {
-        Store store = storeService.getStore(product.getStoreId());
+        Store store = storeService.getOne(product.getStoreId());
 
         Product getProduct = productRepository.findById(id).orElse(null);
         if (getProduct == null) {
