@@ -3,6 +3,10 @@ package io.github.muhammadredin.tokonyadiaapi.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -30,4 +34,7 @@ public class Product {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
+
+    @OneToMany(mappedBy = "product")
+    private Set<Cart> cart;
 }

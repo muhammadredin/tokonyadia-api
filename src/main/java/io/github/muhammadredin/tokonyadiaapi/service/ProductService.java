@@ -12,6 +12,8 @@ import java.util.List;
 public interface ProductService {
     ProductResponse createProduct(ProductRequest product);
 
+    Product getOne(String id);
+
     ProductResponse getProductById(String id);
 
     Page<ProductResponse> searchProduct(SearchProductRequest request);

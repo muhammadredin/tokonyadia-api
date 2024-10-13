@@ -1,12 +1,13 @@
 package io.github.muhammadredin.tokonyadiaapi.dto.response;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 public class ProductResponse {
     private String id;
     private String name;

@@ -1,8 +1,5 @@
 package io.github.muhammadredin.tokonyadiaapi.service;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerUpdateRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchCustomerRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.*;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.CustomerResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
 import org.springframework.data.domain.Page;
@@ -17,5 +14,6 @@ public interface CustomerService {
     CustomerResponse getCustomerById(String id);
     Page<CustomerResponse> searchCustomers(SearchCustomerRequest request);
     CustomerResponse updateCustomer(String id, CustomerUpdateRequest customer);
+
     void deleteCustomer(String id);
 }

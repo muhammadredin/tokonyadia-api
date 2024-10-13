@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -55,6 +56,7 @@ public class ProductController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @PostMapping
     public ResponseEntity<?> createProductHandler(
             @Valid @RequestBody ProductRequest product
@@ -66,6 +68,7 @@ public class ProductController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @permissionEvaluationServiceImpl.productServiceEval(#id)")
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProductHandler(
             @PathVariable String id,
@@ -78,6 +81,7 @@ public class ProductController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @permissionEvaluationServiceImpl.productServiceEval(#id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProductHandler(
             @PathVariable String id

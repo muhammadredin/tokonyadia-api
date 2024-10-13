@@ -1,14 +1,20 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.CustomerResponseMessage;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.CartRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerUpdateRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchCustomerRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.CartResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.CustomerResponse;
+import io.github.muhammadredin.tokonyadiaapi.entity.Cart;
 import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
+import io.github.muhammadredin.tokonyadiaapi.entity.Product;
+import io.github.muhammadredin.tokonyadiaapi.repository.CartRepository;
 import io.github.muhammadredin.tokonyadiaapi.repository.CustomerRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.AuthService;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
+import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
 import io.github.muhammadredin.tokonyadiaapi.specification.CustomerSpecification;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
@@ -23,11 +29,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
+    private final CartRepository cartRepository;
+    private final ProductService productService;
     private final AuthService authService;
 
     @Override

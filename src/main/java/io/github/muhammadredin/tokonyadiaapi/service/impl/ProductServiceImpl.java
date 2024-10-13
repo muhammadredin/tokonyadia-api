@@ -1,18 +1,20 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.ProductResponseMessage;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchProductRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
 import io.github.muhammadredin.tokonyadiaapi.entity.Product;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
+import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.ProductRepository;
+import io.github.muhammadredin.tokonyadiaapi.service.AuthService;
 import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
 import io.github.muhammadredin.tokonyadiaapi.specification.ProductSpecification;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -21,30 +23,36 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
+@RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final StoreService storeService;
-
-    @Autowired
-    public ProductServiceImpl(ProductRepository productRepository, StoreService storeService) {
-        this.productRepository = productRepository;
-        this.storeService = storeService;
-    }
+    private final AuthService authService;
 
     @Override
     public ProductResponse createProduct(ProductRequest product) {
         Store store = storeService.getOne(product.getStoreId());
+        List<String> errors = checkProduct(store.getId());
+
+        if (!errors.isEmpty()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, errors.toString());
 
         return toProductResponse(productRepository.save(toProduct(product, store)));
     }
 
     @Override
+    public Product getOne(String id) {
+        return productRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, ProductResponseMessage.PRODUCT_NOT_FOUND)
+        );
+    }
+
+    @Override
     public ProductResponse getProductById(String id) {
-        Product product = productRepository.findById(id).orElse(null);
-        if (product == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ProductResponseMessage.PRODUCT_NOT_FOUND);
-        }
+        Product product = getOne(id);
         return toProductResponse(product);
     }
 
@@ -61,11 +69,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse updateProduct(String id, ProductRequest product) {
         Store store = storeService.getOne(product.getStoreId());
 
-        Product getProduct = productRepository.findById(id).orElse(null);
-        if (getProduct == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ProductResponseMessage.PRODUCT_NOT_FOUND);
-        }
-
+        Product getProduct = getOne(id);
         getProduct.setName(product.getName());
         getProduct.setPrice(product.getPrice());
         getProduct.setDescription(product.getDescription());
@@ -77,11 +81,23 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteProduct(String id) {
-        Product product = productRepository.findById(id).orElse(null);
-        if (product == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ProductResponseMessage.PRODUCT_NOT_FOUND);
-        }
+        Product product = getOne(id);
         productRepository.delete(product);
+    }
+
+    private List<String> checkProduct(String storeId) {
+        List<String> errors = new ArrayList<>();
+        UserAccount authentication = authService.getAuthentication();
+
+        try {
+            if (!authentication.getStore().getId().equals(storeId)) {
+                errors.add("User doesn't have permission to create, update, and delete product");
+            }
+            return errors;
+        } catch (NullPointerException e) {
+            errors.add("User doesn't have permission to create, update, and delete product");
+            return errors;
+        }
     }
 
     private ProductResponse toProductResponse(Product product) {

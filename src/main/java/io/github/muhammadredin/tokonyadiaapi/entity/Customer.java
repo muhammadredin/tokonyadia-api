@@ -3,7 +3,9 @@ package io.github.muhammadredin.tokonyadiaapi.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,4 +32,6 @@ public class Customer {
     @OneToMany(mappedBy = "customer", fetch = FetchType.EAGER)
     private List<Transaction> transactions;
 
+    @OneToMany(mappedBy = "customer")
+    private Set<Cart> cart;
 }

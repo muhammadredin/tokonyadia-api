@@ -124,7 +124,7 @@ public class StoreServiceImpl implements StoreService {
                 .phoneNumber(response.getPhoneNumber())
                 .products(
                         response.getProducts().stream()
-                                .map(product -> ProductResponse.builder()
+                                .map(product -> (ProductResponse) ProductResponse.builder()
                                         .id(product.getId())
                                         .name(product.getName())
                                         .description(product.getDescription())
