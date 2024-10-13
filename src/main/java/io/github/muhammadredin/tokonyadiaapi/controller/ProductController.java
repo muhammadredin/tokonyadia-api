@@ -6,6 +6,8 @@ import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchProductRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,13 +15,9 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(APIPath.PRODUCT_API)
+@RequiredArgsConstructor
 public class ProductController {
     private final ProductService productService;
-
-    @Autowired
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
 
     @GetMapping("/search")
     public ResponseEntity<?> searchProductsHandler(
@@ -59,7 +57,7 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<?> createProductHandler(
-            @RequestBody ProductRequest product
+            @Valid @RequestBody ProductRequest product
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.CREATED,
@@ -71,7 +69,7 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProductHandler(
             @PathVariable String id,
-            @RequestBody ProductRequest product
+            @Valid @RequestBody ProductRequest product
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,

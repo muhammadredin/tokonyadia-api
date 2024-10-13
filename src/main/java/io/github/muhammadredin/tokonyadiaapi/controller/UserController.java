@@ -7,6 +7,7 @@ import io.github.muhammadredin.tokonyadiaapi.dto.request.UserAccountRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.AuthService;
 import io.github.muhammadredin.tokonyadiaapi.service.UserAccountService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,12 +24,12 @@ public class UserController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginHandler(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> loginHandler(@Valid @RequestBody LoginRequest request) {
         return ResponseUtil.buildResponse(HttpStatus.OK, UserResponseMessage.USER_LOGIN_SUCCESS, authService.login(request));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerHandler(@RequestBody UserAccountRequest request) {
+    public ResponseEntity<?> registerHandler(@Valid @RequestBody UserAccountRequest request) {
         userAccountService.createUserAccount(request);
         return ResponseUtil.buildResponse(HttpStatus.CREATED, UserResponseMessage.USER_REGISTER_SUCCESS, null);
     }

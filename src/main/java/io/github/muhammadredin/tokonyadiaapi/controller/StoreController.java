@@ -6,6 +6,8 @@ import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,13 +16,9 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(APIPath.STORE_API)
+@RequiredArgsConstructor
 public class StoreController {
     private final StoreService storeService;
-
-    @Autowired
-    public StoreController(StoreService storeService) {
-        this.storeService = storeService;
-    }
 
     @GetMapping("/search")
     public ResponseEntity<?> searchStoresHandler(
@@ -57,7 +55,7 @@ public class StoreController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @PostMapping
     public ResponseEntity<?> createStore(
-            @RequestBody StoreRequest store
+            @Valid @RequestBody StoreRequest store
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.CREATED,
@@ -70,7 +68,7 @@ public class StoreController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateStore(
             @PathVariable String id,
-            @RequestBody StoreRequest store
+            @Valid @RequestBody StoreRequest store
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,

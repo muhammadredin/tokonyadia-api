@@ -7,6 +7,7 @@ import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerUpdateRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchCustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +54,7 @@ public class CustomerController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @PostMapping
     public ResponseEntity<?> createCustomer(
-            @RequestBody CustomerRequest customer
+            @Valid @RequestBody CustomerRequest customer
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.CREATED,
@@ -66,7 +67,7 @@ public class CustomerController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateCustomer(
             @PathVariable String id,
-            @RequestBody CustomerUpdateRequest customer
+            @Valid @RequestBody CustomerUpdateRequest customer
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
