@@ -13,6 +13,7 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ValidationExceptionHandler {
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public CommonResponse<?> handleValidationExceptions(

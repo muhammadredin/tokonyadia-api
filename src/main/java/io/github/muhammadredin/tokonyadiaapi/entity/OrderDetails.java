@@ -1,33 +1,31 @@
 package io.github.muhammadredin.tokonyadiaapi.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 @Entity
-@Table(name = "transaction_detail")
-public class TransactionDetail {
+@Table(name = "t_order_details")
+public class OrderDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column(name = "quantity", nullable = false)
-    private int quantity;
+    private Integer quantity;
 
     @Column(name = "price", nullable = false)
-    private int price;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transaction_id")
-    private Transaction transactionId;
+    private Integer price;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private Order order;
 }

@@ -4,6 +4,7 @@ import io.github.muhammadredin.tokonyadiaapi.dto.request.CartRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CartUpdateProductQuantityRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.CartResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Cart;
+import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
 import io.github.muhammadredin.tokonyadiaapi.entity.Product;
 import io.github.muhammadredin.tokonyadiaapi.repository.CartRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.CartService;
@@ -33,10 +34,23 @@ public class CartServiceImpl implements CartService {
     @Override
     public void addProductToCart(String id, CartRequest request) {
         Product product = productService.getOne(request.getProductId());
+        Customer customer = customerService.getOne(id);
+
         checkQuantityToStock(request.getQuantity(), product.getStock());
+        List<Cart> checkCustomerCart = cartRepository.findByCustomer(customer);
+
+        for (Cart cart : checkCustomerCart) {
+            if (cart.getProduct().getId().equals(product.getId())) {
+                checkQuantityToStock((request.getQuantity() + cart.getQuantity()), product.getStock());
+                cart.setQuantity(cart.getQuantity() + request.getQuantity());
+                cartRepository.save(cart);
+                return;
+            }
+        }
+
         Cart cart = Cart.builder()
                 .product(product)
-                .customer(customerService.getOne(id))
+                .customer(customer)
                 .quantity(request.getQuantity())
                 .build();
         cartRepository.save(cart);
@@ -57,9 +71,13 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void deleteCart(String id) {
-        Cart cart = getOne(id);
+    public void deleteCart(Cart cart) {
         cartRepository.delete(cart);
+    }
+
+    @Override
+    public void deleteCartById(String cartId) {
+        cartRepository.delete(getOne(cartId));
     }
 
     private void checkQuantityToStock(Integer quantity, Integer stock) {

@@ -4,6 +4,7 @@ import io.github.muhammadredin.tokonyadiaapi.constant.APIPath;
 import io.github.muhammadredin.tokonyadiaapi.constant.StoreResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
+import io.github.muhammadredin.tokonyadiaapi.service.OrderService;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import jakarta.validation.Valid;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class StoreController {
     private final StoreService storeService;
+    private final OrderService orderService;
 
     @GetMapping("/search")
     public ResponseEntity<?> searchStoresHandler(
@@ -87,6 +89,18 @@ public class StoreController {
                 HttpStatus.OK,
                 StoreResponseMessage.STORE_DELETE_SUCCESS,
                 null
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.storeServiceEval(#id)")
+    @GetMapping("/{id}/order-details")
+    public ResponseEntity<?> getAllOrderDetails(
+            @PathVariable String id
+    ) {
+        return ResponseUtil.buildResponse(
+                HttpStatus.OK,
+                StoreResponseMessage.STORE_GET_SUCCESS,
+                orderService.getAllTransactionDetailsByStoreId(id)
         );
     }
 }

@@ -30,7 +30,7 @@ public class Customer {
     private UserAccount userAccount;
 
     @OneToMany(mappedBy = "customer", fetch = FetchType.EAGER)
-    private List<Transaction> transactions;
+    private List<Invoice> invoices;
 
     @OneToMany(mappedBy = "customer")
     private Set<Cart> cart;

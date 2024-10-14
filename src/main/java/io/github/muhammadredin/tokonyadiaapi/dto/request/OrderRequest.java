@@ -9,6 +9,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TransactionRequest {
-    private List<String> carts;
+public class OrderRequest {
+    private String shippingProvider;
+    private List<OrderDetailsRequest> orderDetails;
 }

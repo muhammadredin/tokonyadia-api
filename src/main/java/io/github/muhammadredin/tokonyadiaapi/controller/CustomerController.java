@@ -136,7 +136,7 @@ public class CustomerController {
             @PathVariable String id,
             @PathVariable String cartId
     ) {
-        cartService.deleteCart(cartId);
+        cartService.deleteCartById(cartId);
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 CustomerResponseMessage.CUSTOMER_DELETE_PRODUCTS_SUCCESS,
