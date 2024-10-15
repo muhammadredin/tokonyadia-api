@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.github.muhammadredin.tokonyadiaapi.constant.PaymentMethod;
 import io.github.muhammadredin.tokonyadiaapi.constant.PaymentStatus;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class InvoiceResponse {
     private String id;
     // TODO: Nanti diganti dengan QR/Kode Pembayaran Dari Midtrans

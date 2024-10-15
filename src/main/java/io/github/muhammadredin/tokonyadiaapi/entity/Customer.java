@@ -1,9 +1,9 @@
 package io.github.muhammadredin.tokonyadiaapi.entity;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.TableName;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -13,7 +13,7 @@ import java.util.Set;
 @Setter
 @Builder
 @Entity
-@Table(name = "customer")
+@Table(name = TableName.CUSTOMER_TABLE)
 public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

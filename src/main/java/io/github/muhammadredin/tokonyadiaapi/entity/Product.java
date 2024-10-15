@@ -1,5 +1,6 @@
 package io.github.muhammadredin.tokonyadiaapi.entity;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.TableName;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +14,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Builder
-@Table(name = "product")
+@Table(name = TableName.PRODUCT_TABLE)
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -34,6 +35,9 @@ public class Product {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<OrderDetails> erDetails;
 
     @OneToMany(mappedBy = "product")
     private Set<Cart> cart;

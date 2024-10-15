@@ -1,5 +1,6 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.CartResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CartRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CartUpdateProductQuantityRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.CartResponse;
@@ -67,7 +68,7 @@ public class CartServiceImpl implements CartService {
     @Override
     public Cart getOne(String id){
         return cartRepository.findById(id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Cart with id %s not found", id)));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format(CartResponseMessage.ERROR_CART_NOT_FOUND, id)));
     }
 
     @Override
@@ -81,7 +82,7 @@ public class CartServiceImpl implements CartService {
     }
 
     private void checkQuantityToStock(Integer quantity, Integer stock) {
-        if (quantity > stock) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity is greater than stock");
+        if (quantity > stock) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, CartResponseMessage.ERROR_INSUFFICIENT_PRODUCT_ADD_TO_CART);
     }
 
     private CartResponse toCartResponse(Cart cart) {

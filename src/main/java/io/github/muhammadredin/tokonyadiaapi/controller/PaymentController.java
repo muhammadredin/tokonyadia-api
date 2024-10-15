@@ -1,9 +1,11 @@
 package io.github.muhammadredin.tokonyadiaapi.controller;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.APIPath;
+import io.github.muhammadredin.tokonyadiaapi.constant.PaymentResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CheckoutRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.InvoiceService;
-import io.github.muhammadredin.tokonyadiaapi.service.impl.CheckoutService;
+import io.github.muhammadredin.tokonyadiaapi.service.CheckoutService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/payment")
+@RequestMapping(APIPath.PAYMENT_API)
 @RequiredArgsConstructor
 public class PaymentController {
     private final CheckoutService checkoutService;
@@ -21,7 +23,7 @@ public class PaymentController {
     public ResponseEntity<?> checkoutForPaymentHandler(
             @RequestBody CheckoutRequest request
     ) {
-        return ResponseUtil.buildResponse(HttpStatus.CREATED, "Transaction created", checkoutService.checkoutCart(request));
+        return ResponseUtil.buildResponse(HttpStatus.CREATED, PaymentResponseMessage.SUCCESS_CREATE_INVOICE, checkoutService.checkoutCart(request));
     }
 
     @GetMapping
@@ -33,7 +35,17 @@ public class PaymentController {
         PagingAndSortingRequest pagingAndSortingRequest = new PagingAndSortingRequest(page, size, sort);
         return ResponseUtil.buildResponsePaging(
                 HttpStatus.OK,
-                "Success fething all customer invoice",
+                PaymentResponseMessage.SUCCESS_GET_ALL_CUSTOMER_INVOICES,
                 invoiceService.getAllCustomerInvoice(pagingAndSortingRequest));
+    }
+
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<?> getCustomerPaymentDetailHandler(
+            @PathVariable String id
+    ) {
+        return ResponseUtil.buildResponse(
+                HttpStatus.OK,
+                PaymentResponseMessage.SUCCESS_GET_CUSTOMER_PAYMENT_DETAIL,
+                invoiceService.getCustomerPaymentDetail(id));
     }
 }

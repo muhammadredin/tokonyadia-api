@@ -1,5 +1,6 @@
 package io.github.muhammadredin.tokonyadiaapi.entity;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.TableName;
 import io.github.muhammadredin.tokonyadiaapi.constant.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,8 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Builder
-// TODO: Ganti menjadi constant untuk table M_USER_ACCOUNT
-@Table(name = "m_user_account")
+@Table(name = TableName.USER_ACCOUNT_TABLE)
 public class UserAccount implements UserDetails {
 
     @Id

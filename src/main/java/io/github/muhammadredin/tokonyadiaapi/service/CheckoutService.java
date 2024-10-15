@@ -1,4 +1,4 @@
-package io.github.muhammadredin.tokonyadiaapi.service.impl;
+package io.github.muhammadredin.tokonyadiaapi.service;
 
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CheckoutRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.InvoiceResponse;

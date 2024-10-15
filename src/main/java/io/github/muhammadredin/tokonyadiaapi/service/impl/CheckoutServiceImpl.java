@@ -1,6 +1,7 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.PaymentMethod;
+import io.github.muhammadredin.tokonyadiaapi.constant.PaymentResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.constant.ShippingProvider;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CheckoutRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.OrderDetailsRequest;
@@ -61,11 +62,12 @@ public class CheckoutServiceImpl implements CheckoutService {
                         .order(order)
                         .build();
 
+                // Cek apabila dalam satu order terdapat product dari store yang berbeda
                 if (checkStore == null) {
                     checkStore = cart.getProduct().getStore();
                 } else {
                     if (!checkStore.equals(cart.getProduct().getStore())) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot add product with different store in one order");
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, PaymentResponseMessage.ERROR_MULTIPLE_STORE_IN_ORDER);
                     }
                 }
 

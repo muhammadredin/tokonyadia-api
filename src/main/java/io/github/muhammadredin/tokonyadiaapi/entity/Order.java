@@ -2,6 +2,7 @@ package io.github.muhammadredin.tokonyadiaapi.entity;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.ShippingProvider;
 import io.github.muhammadredin.tokonyadiaapi.constant.OrderStatus;
+import io.github.muhammadredin.tokonyadiaapi.constant.TableName;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,7 +15,7 @@ import java.util.List;
 @Setter
 @Entity
 @Builder
-@Table(name = "t_order")
+@Table(name = TableName.ORDER_TABLE)
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

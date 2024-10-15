@@ -2,11 +2,9 @@ package io.github.muhammadredin.tokonyadiaapi.controller;
 
 import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
-import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

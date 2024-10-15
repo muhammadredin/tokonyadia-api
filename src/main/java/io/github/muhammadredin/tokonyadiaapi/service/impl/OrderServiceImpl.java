@@ -1,6 +1,6 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
-import io.github.muhammadredin.tokonyadiaapi.dto.response.OrderResponse;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.OrderDetailResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductOrderResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreOrderResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Order;
@@ -27,6 +27,7 @@ import java.util.List;
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final StoreService storeService;
+
     @Override
     public Order createOrder(Order request) {
         return orderRepository.saveAndFlush(request);
@@ -34,7 +35,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = true)
     @Override
-    public OrderResponse getCustomerOrderById(String transactionId) {
+    public OrderDetailResponse getCustomerOrderById(String transactionId) {
         Order order = getOne(transactionId);
 
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -51,13 +52,14 @@ public class OrderServiceImpl implements OrderService {
             ProductOrderResponse productOrderResponse = ProductOrderResponse.builder()
                     .productId(orderDetails.getProduct().getId())
                     .productName(orderDetails.getProduct().getName())
+                    .productPrice(orderDetails.getPrice())
                     .quantity(orderDetails.getQuantity())
                     .build();
 
             productDetails.add(productOrderResponse);
         }
 
-        return OrderResponse.builder()
+        return OrderDetailResponse.builder()
                 .orderId(transactionId)
                 .orderDate(order.getOrderDate())
                 .orderStatus(order.getOrderStatus())

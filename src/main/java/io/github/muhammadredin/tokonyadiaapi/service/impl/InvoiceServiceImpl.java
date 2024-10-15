@@ -1,10 +1,12 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.InvoiceResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.PaymentDetailResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.InvoiceResponse;
-import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
-import io.github.muhammadredin.tokonyadiaapi.entity.Invoice;
-import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.PaymentOrderResponse;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductOrderResponse;
+import io.github.muhammadredin.tokonyadiaapi.entity.*;
 import io.github.muhammadredin.tokonyadiaapi.repository.InvoiceRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.InvoiceService;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
@@ -13,10 +15,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -43,16 +49,49 @@ public class InvoiceServiceImpl implements InvoiceService {
         return invoiceRepository.getInvoiceByCustomer(customer, pageable).map(this::toInvoiceResponse);
     }
 
-//    TODO: Ganti return menjadi InvoiceDetailRespone
     @Override
-    public InvoiceResponse getCustomerInvoiceById(String id) {
+    public PaymentDetailResponse getCustomerPaymentDetail(String id) {
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Customer customer = userAccount.getCustomer();
 
-        return toInvoiceResponse(invoiceRepository.getInvoiceByCustomerAndId(customer, id));
+        Invoice invoice = getOne(id);
+
+        if (invoice.getCustomer() != customer) throw new ResponseStatusException(HttpStatus.NOT_FOUND, InvoiceResponseMessage.ERROR_CUSTOMER_INVOICE_NOT_FOUND);
+
+        List<PaymentOrderResponse> orderList = new ArrayList<>();
+
+        for (Order order : invoice.getOrder()) {
+            List<ProductOrderResponse> productOrderList = new ArrayList<>();
+            PaymentOrderResponse orderResponse = PaymentOrderResponse.builder()
+                    .storeName(order.getOrderDetails().get(0).getProduct().getStore().getName())
+                    .shippingProvider(order.getShippingProvider().name())
+                    .build();
+            for (OrderDetails orderDetail : order.getOrderDetails()) {
+                ProductOrderResponse product = ProductOrderResponse.builder()
+                        .productId(orderDetail.getProduct().getId())
+                        .productName(orderDetail.getProduct().getName())
+                        .productPrice(orderDetail.getProduct().getPrice())
+                        .quantity(orderDetail.getQuantity())
+                        .build();
+                productOrderList.add(product);
+            }
+            orderResponse.setProducts(productOrderList);
+            orderList.add(orderResponse);
+        }
+
+        return PaymentDetailResponse.builder()
+                .totalPrice(invoice.getTotalPayment())
+                .paymentMethod(invoice.getPaymentMethod().name())
+                .orders(orderList)
+                .build();
     }
 
-    private InvoiceResponse toInvoiceResponse(Invoice invoice) {
+    @Override
+    public Invoice getOne(String id) {
+        return invoiceRepository.findById(id).orElseThrow();
+    }
+
+    public InvoiceResponse toInvoiceResponse(Invoice invoice) {
         return InvoiceResponse.builder()
                 .id(invoice.getId())
                 .paymentDueDate(invoice.getPaymentDueDate())

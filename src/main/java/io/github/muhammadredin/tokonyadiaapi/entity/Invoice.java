@@ -2,6 +2,7 @@ package io.github.muhammadredin.tokonyadiaapi.entity;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.PaymentStatus;
 import io.github.muhammadredin.tokonyadiaapi.constant.PaymentMethod;
+import io.github.muhammadredin.tokonyadiaapi.constant.TableName;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,7 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "t_invoice")
+@Table(name = TableName.INVOICE_TABLE)
 public class Invoice {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -1,5 +1,6 @@
 package io.github.muhammadredin.tokonyadiaapi.entity;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.TableName;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table
+@Table(name = TableName.CART_TABLE)
 public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
