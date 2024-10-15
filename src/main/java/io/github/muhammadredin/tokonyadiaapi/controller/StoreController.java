@@ -92,14 +92,27 @@ public class StoreController {
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.storeServiceEval(#id)")
-    @GetMapping("/{id}/order-details")
-    public ResponseEntity<?> getAllOrderDetails(
+    @GetMapping("/{id}/order")
+    public ResponseEntity<?> getAllOrder(
             @PathVariable String id
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 StoreResponseMessage.STORE_GET_SUCCESS,
-                orderService.getAllTransactionDetailsByStoreId(id)
+                orderService.getAllOrderByStoreId(id)
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.storeServiceEval(#id)")
+    @GetMapping("/{id}/order/detail/{orderId}")
+    public ResponseEntity<?> getAllOrderDetail(
+            @PathVariable String id,
+            @PathVariable String orderId
+    ) {
+        return ResponseUtil.buildResponse(
+                HttpStatus.OK,
+                StoreResponseMessage.STORE_GET_SUCCESS,
+                orderService.getOrderDetailByStoreId(orderId)
         );
     }
 }

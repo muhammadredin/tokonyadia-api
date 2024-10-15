@@ -1,5 +1,6 @@
 package io.github.muhammadredin.tokonyadiaapi.specification;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.PaymentStatus;
 import io.github.muhammadredin.tokonyadiaapi.entity.*;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
 import jakarta.persistence.criteria.Join;
@@ -9,8 +10,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 @RequiredArgsConstructor
 public class OrderSpecification {
-    private StoreService storeService;
-
     public static Specification<Order> storeTransactionDetails(Store store) {
         return (root, query, criteriaBuilder) -> {
             // Join product
@@ -25,7 +24,12 @@ public class OrderSpecification {
             Join<OrderDetails, Product> productJoin = transactionDetailJoin.join("product");
 
             // Predicate for store_id
-            Predicate storeIdPredicate = criteriaBuilder.equal(productJoin.get("store"), store);
+            Predicate storeIdPredicate = criteriaBuilder.and(
+                    criteriaBuilder.equal(productJoin.get("store"), store)
+                    // TODO: nyalakan ketika sudah menggunakan midtrans
+//                    criteriaBuilder.notEqual(invoiceJoin.get("paymentStatus"), PaymentStatus.PENDING)
+            );
+
 
             // Specify group by clause (you can only groupBy for queries returning aggregate results)
             query.groupBy(

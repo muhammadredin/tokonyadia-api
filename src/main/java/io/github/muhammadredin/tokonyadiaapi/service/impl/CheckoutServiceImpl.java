@@ -4,7 +4,6 @@ import io.github.muhammadredin.tokonyadiaapi.constant.PaymentMethod;
 import io.github.muhammadredin.tokonyadiaapi.constant.PaymentResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.constant.ShippingProvider;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CheckoutRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.OrderDetailsRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.OrderRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.InvoiceResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.*;

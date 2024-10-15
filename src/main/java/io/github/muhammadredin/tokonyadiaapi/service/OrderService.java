@@ -1,5 +1,6 @@
 package io.github.muhammadredin.tokonyadiaapi.service;
 
+import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreOrderDetailResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.OrderDetailResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreOrderResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Order;
@@ -11,9 +12,11 @@ public interface OrderService {
     Order createOrder(Order request);
 
     @Transactional(readOnly = true)
-    OrderDetailResponse getCustomerOrderById(String transactionId);
+    OrderDetailResponse getCustomerOrderById(String orderId);
 
     Order getOne(String transactionId);
 
-    List<StoreOrderResponse> getAllTransactionDetailsByStoreId(String storeId);
+    List<StoreOrderResponse> getAllOrderByStoreId(String storeId);
+
+    StoreOrderDetailResponse getOrderDetailByStoreId(String orderId);
 }

@@ -10,5 +10,5 @@ import lombok.*;
 public class StoreOrderResponse {
     private String orderId;
     private String customerName;
-    private String transactionStatus;
+    private String orderStatus;
 }

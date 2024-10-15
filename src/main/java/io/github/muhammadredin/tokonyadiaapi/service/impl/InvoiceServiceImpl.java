@@ -56,7 +56,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         Invoice invoice = getOne(id);
 
-        if (invoice.getCustomer() != customer) throw new ResponseStatusException(HttpStatus.NOT_FOUND, InvoiceResponseMessage.ERROR_CUSTOMER_INVOICE_NOT_FOUND);
+        if (!invoice.getCustomer().getId().equals(customer.getId()))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, InvoiceResponseMessage.ERROR_CUSTOMER_INVOICE_NOT_FOUND);
 
         List<PaymentOrderResponse> orderList = new ArrayList<>();
 

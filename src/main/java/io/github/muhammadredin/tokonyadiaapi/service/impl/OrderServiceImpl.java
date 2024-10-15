@@ -1,10 +1,13 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
+import io.github.muhammadredin.tokonyadiaapi.constant.OrderResponseMessage;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreOrderDetailResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.OrderDetailResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductOrderResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreOrderResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Order;
 import io.github.muhammadredin.tokonyadiaapi.entity.OrderDetails;
+import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.OrderRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.*;
@@ -26,7 +29,7 @@ import java.util.List;
 @Slf4j
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
-    private final StoreService storeService;
+    private final StoreService storeService;;
 
     @Override
     public Order createOrder(Order request) {
@@ -35,11 +38,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = true)
     @Override
-    public OrderDetailResponse getCustomerOrderById(String transactionId) {
-        Order order = getOne(transactionId);
+    public OrderDetailResponse getCustomerOrderById(String orderId) {
+        Order order = getOne(orderId);
 
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!order.getInvoice().getCustomer().equals(userAccount.getCustomer())) {
+        if (!order.getInvoice().getCustomer().getId().equals(userAccount.getCustomer().getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access Denied");
         }
 
@@ -60,32 +63,71 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return OrderDetailResponse.builder()
-                .orderId(transactionId)
+                .orderId(orderId)
                 .orderDate(order.getOrderDate())
                 .orderStatus(order.getOrderStatus())
                 .shippingProvider(order.getShippingProvider())
                 .totalPrice(totalPrice)
+                .shippingAddress(order.getInvoice().getCustomer().getAddress())
                 .productDetails(productDetails)
                 .build();
     }
 
     @Override
-    public Order getOne(String transactionId) {
-        return orderRepository.findById(transactionId)
+    public Order getOne(String orderId) {
+        return orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found"));
     }
 
     @Override
-    public List<StoreOrderResponse> getAllTransactionDetailsByStoreId(String storeId) {
+    public List<StoreOrderResponse> getAllOrderByStoreId(String storeId) {
         Specification<Order> specification = OrderSpecification.storeTransactionDetails(storeService.getOne(storeId));
         return orderRepository.findAll(specification).stream()
                 .map(o -> {
                     return StoreOrderResponse.builder()
                             .orderId(o.getId())
                             .customerName(o.getInvoice().getCustomer().getName())
-                            .transactionStatus(o.getOrderStatus().name())
+                            .orderStatus(o.getOrderStatus().name())
                             .build();
                 })
                 .toList();
+    }
+
+    @Override
+    public StoreOrderDetailResponse getOrderDetailByStoreId(String orderId) {
+        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Store store = userAccount.getStore();
+        Order order = getOne(orderId);
+
+        if (!order.getOrderDetails().get(0).getProduct().getStore().getId().equals(store.getId()))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, OrderResponseMessage.ERROR_ORDER_NOT_FOUND);
+
+        List<ProductOrderResponse> productDetails = new ArrayList<>();
+        int totalPrice = 0;
+
+        for (OrderDetails orderDetails : order.getOrderDetails()) {
+            totalPrice += orderDetails.getPrice() * orderDetails.getQuantity();
+
+            ProductOrderResponse productOrderResponse = ProductOrderResponse.builder()
+                    .productId(orderDetails.getProduct().getId())
+                    .productName(orderDetails.getProduct().getName())
+                    .productPrice(orderDetails.getPrice())
+                    .quantity(orderDetails.getQuantity())
+                    .build();
+
+            productDetails.add(productOrderResponse);
+        }
+
+        return StoreOrderDetailResponse.builder()
+                .customerId(order.getInvoice().getCustomer().getId())
+                .customerName(order.getInvoice().getCustomer().getName())
+                .orderId(order.getId())
+                .orderStatus(order.getOrderStatus())
+                .orderDate(order.getOrderDate())
+                .totalPrice(totalPrice)
+                .shippingAddress(order.getInvoice().getCustomer().getAddress())
+                .shippingProvider(order.getShippingProvider())
+                .productDetails(productDetails)
+                .build();
     }
 }
