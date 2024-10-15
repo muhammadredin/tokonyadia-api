@@ -102,7 +102,7 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductResponse toProductResponse(Product product) {
         return ProductResponse.builder()
-                .id(product.getId())
+                .productId(product.getId())
                 .name(product.getName())
                 .description(product.getDescription())
                 .price(product.getPrice())

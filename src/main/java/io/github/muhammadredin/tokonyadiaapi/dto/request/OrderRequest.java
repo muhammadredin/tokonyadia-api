@@ -11,5 +11,5 @@ import java.util.List;
 @Builder
 public class OrderRequest {
     private String shippingProvider;
-    private List<OrderDetailsRequest> orderDetails;
+    private List<String> orderDetails;
 }

@@ -125,7 +125,7 @@ public class StoreServiceImpl implements StoreService {
                 .products(
                         response.getProducts().stream()
                                 .map(product -> (ProductResponse) ProductResponse.builder()
-                                        .id(product.getId())
+                                        .productId(product.getId())
                                         .name(product.getName())
                                         .description(product.getDescription())
                                         .price(product.getPrice())

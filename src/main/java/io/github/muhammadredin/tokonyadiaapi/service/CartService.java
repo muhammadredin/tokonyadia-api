@@ -8,11 +8,11 @@ import io.github.muhammadredin.tokonyadiaapi.entity.Cart;
 import java.util.List;
 
 public interface CartService {
-    List<CartResponse> getAllProduct(String id);
+    List<CartResponse> getAllProduct();
 
-    void addProductToCart(String id, CartRequest request);
+    void addProductToCart(CartRequest request);
 
-    void updateProductQuantity(String id, String cartId, CartUpdateProductQuantityRequest request);
+    void updateProductQuantity(String cartId, CartUpdateProductQuantityRequest request);
 
     Cart getOne(String id);
 

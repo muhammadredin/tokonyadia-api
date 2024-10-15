@@ -7,12 +7,13 @@ import io.github.muhammadredin.tokonyadiaapi.dto.response.CartResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Cart;
 import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
 import io.github.muhammadredin.tokonyadiaapi.entity.Product;
+import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.CartRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.CartService;
-import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
 import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -24,21 +25,23 @@ import java.util.Set;
 public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final ProductService productService;
-    private final CustomerService customerService;
 
     @Override
-    public List<CartResponse> getAllProduct(String id) {
-        Set<Cart> cart = customerService.getOne(id).getCart();
+    public List<CartResponse> getAllProduct() {
+        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Set<Cart> cart = userAccount.getCustomer().getCart();
         return cart.stream().map(this::toCartResponse).toList();
     }
 
     @Override
-    public void addProductToCart(String id, CartRequest request) {
+    public void addProductToCart(CartRequest request) {
+        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Customer customer = userAccount.getCustomer();
         Product product = productService.getOne(request.getProductId());
-        Customer customer = customerService.getOne(id);
 
         checkQuantityToStock(request.getQuantity(), product.getStock());
-        List<Cart> checkCustomerCart = cartRepository.findByCustomer(customer);
+        Set<Cart> checkCustomerCart = customer.getCart();
 
         for (Cart cart : checkCustomerCart) {
             if (cart.getProduct().getId().equals(product.getId())) {
@@ -58,7 +61,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void updateProductQuantity(String id, String cartId, CartUpdateProductQuantityRequest request) {
+    public void updateProductQuantity(String cartId, CartUpdateProductQuantityRequest request) {
         Cart cart = getOne(cartId);
         checkQuantityToStock(request.getQuantity(), cart.getProduct().getStock());
         cart.setQuantity(request.getQuantity());
@@ -66,7 +69,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public Cart getOne(String id){
+    public Cart getOne(String id) {
         return cartRepository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format(CartResponseMessage.ERROR_CART_NOT_FOUND, id)));
     }
@@ -78,17 +81,24 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void deleteCartById(String cartId) {
+        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Cart cart = getOne(cartId);
+        if (cart.getCustomer() != userAccount.getCustomer())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format(CartResponseMessage.ERROR_CART_NOT_FOUND, cartId));
+
         cartRepository.delete(getOne(cartId));
     }
 
     private void checkQuantityToStock(Integer quantity, Integer stock) {
-        if (quantity > stock) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, CartResponseMessage.ERROR_INSUFFICIENT_PRODUCT_ADD_TO_CART);
+        if (quantity > stock)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, CartResponseMessage.ERROR_INSUFFICIENT_PRODUCT_ADD_TO_CART);
     }
 
     private CartResponse toCartResponse(Cart cart) {
         return CartResponse.builder()
                 .cartId(cart.getId())
-                .id(cart.getProduct().getId())
+                .productId(cart.getProduct().getId())
                 .name(cart.getProduct().getName())
                 .description(cart.getProduct().getDescription())
                 .price(cart.getProduct().getPrice())

@@ -9,7 +9,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 public class ProductResponse {
-    private String id;
+    private String productId;
     private String name;
     private String description;
     private Integer price;

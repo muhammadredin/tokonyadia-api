@@ -89,13 +89,12 @@ public class CustomerController {
         );
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
-    @PostMapping("/{id}/cart")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PostMapping("/cart")
     public ResponseEntity<?> addProductToCartHandler(
-            @PathVariable String id,
             @RequestBody CartRequest cartRequest
             ) {
-        cartService.addProductToCart(id, cartRequest);
+        cartService.addProductToCart(cartRequest);
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 CustomerResponseMessage.CUSTOMER_ADD_PRODUCT_SUCCESS,
@@ -103,26 +102,23 @@ public class CustomerController {
         );
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
-    @GetMapping("/{id}/cart")
-    public ResponseEntity<?> getAllProductFromCartHandler(
-            @PathVariable String id
-    ) {
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @GetMapping("/cart")
+    public ResponseEntity<?> getAllProductFromCartHandler() {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 CustomerResponseMessage.CUSTOMER_GET_PRODUCTS_SUCCESS,
-                cartService.getAllProduct(id)
+                cartService.getAllProduct()
         );
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
-    @PutMapping("/{id}/cart/{cartId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PutMapping("/cart/{cartId}")
     public ResponseEntity<?> updateCartHandler(
-            @PathVariable String id,
             @PathVariable String cartId,
             @RequestBody CartUpdateProductQuantityRequest request
     ) {
-        cartService.updateProductQuantity(id, cartId, request);
+        cartService.updateProductQuantity(cartId, request);
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 CustomerResponseMessage.CUSTOMER_UPDATE_PRODUCTS_SUCCESS,
@@ -130,10 +126,9 @@ public class CustomerController {
         );
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
-    @DeleteMapping("/{id}/cart/{cartId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @DeleteMapping("/cart/{cartId}")
     public ResponseEntity<?> deleteCartHandler(
-            @PathVariable String id,
             @PathVariable String cartId
     ) {
         cartService.deleteCartById(cartId);

@@ -52,8 +52,8 @@ public class CheckoutServiceImpl implements CheckoutService {
 
             Store checkStore = null;
             // Create and add all the products in order details
-            for (OrderDetailsRequest orderDetailsRequest : orderRequest.getOrderDetails()) {
-                Cart cart = cartService.getOne(orderDetailsRequest.getCartId());
+            for (String cartId : orderRequest.getOrderDetails()) {
+                Cart cart = cartService.getOne(cartId);
 
                 OrderDetails orderDetails = OrderDetails.builder()
                         .product(cart.getProduct())
