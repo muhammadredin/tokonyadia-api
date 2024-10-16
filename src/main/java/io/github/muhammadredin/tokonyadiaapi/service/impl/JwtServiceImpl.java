@@ -9,10 +9,12 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import io.github.muhammadredin.tokonyadiaapi.constant.JWTResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.service.JwtService;
+import io.github.muhammadredin.tokonyadiaapi.service.RedisService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -20,13 +22,19 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.Date;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class JwtServiceImpl implements JwtService {
+    @Autowired
+    private RedisService redisService;
+
     private final String SECRET_KEY;
 
     @Value("${tokonyadia.api.jwt-issuer}")
@@ -61,6 +69,16 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
+    public void blacklistToken(String bearerToken) {
+        String accessToken = parseToken(bearerToken);
+
+        Date expDate = getExpDate(accessToken);
+        long timeLeft = expDate.getTime() - System.currentTimeMillis();
+
+        redisService.save("blacklistToken:" + accessToken, "BLACKLISTED", Duration.ofMillis(timeLeft));
+    }
+
+    @Override
     public boolean validateToken(String token) {
         log.info("Validating JWT Token: {}", token);
         try {
@@ -90,5 +108,28 @@ public class JwtServiceImpl implements JwtService {
             log.error("Error Extracting User ID From JWT Token: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, JWTResponseMessage.INVALID_JWT_ERROR);
         }
+    }
+
+    @Override
+    public Date getExpDate(String token) {
+        log.info("Extracting Expiration Date From JWT Token: {}", token);
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer(ISSUER)
+                    .build();
+            DecodedJWT jwt = verifier.verify(token);
+            return jwt.getExpiresAt();
+        } catch (JWTVerificationException e) {
+            log.error("Error Extracting User ID From JWT Token: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, JWTResponseMessage.INVALID_JWT_ERROR);
+        }
+    }
+
+    private String parseToken(String bearerToken) {
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, JWTResponseMessage.INVALID_JWT_ERROR);
     }
 }

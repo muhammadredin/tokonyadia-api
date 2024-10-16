@@ -6,11 +6,11 @@ import io.github.muhammadredin.tokonyadiaapi.dto.response.LoginResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
-import io.github.muhammadredin.tokonyadiaapi.service.AuthService;
-import io.github.muhammadredin.tokonyadiaapi.service.JwtService;
-import io.github.muhammadredin.tokonyadiaapi.service.UserAccountService;
+import io.github.muhammadredin.tokonyadiaapi.service.*;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +19,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -27,6 +29,7 @@ import java.util.Optional;
 public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
     private final UserAccountService userAccountService;
 
     @Override
@@ -39,13 +42,15 @@ public class AuthServiceImpl implements AuthService {
             if (!authentication.isAuthenticated()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, UserResponseMessage.USER_LOGIN_ERROR);
 
             UserAccount userAccount = (UserAccount) authentication.getPrincipal();
-            String token = jwtService.generateToken(userAccount);
+            String accessToken = jwtService.generateToken(userAccount);
+            String refreshToken = refreshTokenService.generateRefreshToken(userAccount.getId());
 
             Optional<Customer> customer = Optional.ofNullable(userAccount.getCustomer());
             Optional<Store> store = Optional.ofNullable(userAccount.getStore());
 
             return LoginResponse.builder()
-                    .token(token)
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
                     .role(userAccount.getRole().name())
                     .customerId(customer.map(Customer::getId).orElse(null))
                     .storeId(store.map(Store::getId).orElse(null))
@@ -54,6 +59,33 @@ public class AuthServiceImpl implements AuthService {
             log.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
+    }
+
+    @Override
+    public LoginResponse refreshToken(String refreshToken) {
+        log.info("Refresh Token: {}", refreshToken);
+        String userId = refreshTokenService.getUserIdByRefreshToken(refreshToken);
+        log.info("Refresh User Id: {}", userId);
+        String newRefreshToken = refreshTokenService.rotateRefreshToken(userId);
+
+        UserAccount userAccount = userAccountService.getOne(userId);
+        String accessToken = jwtService.generateToken(userAccount);
+
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(newRefreshToken)
+                .role(userAccount.getRole().name())
+                .customerId(userAccount.getCustomer().getId())
+                .storeId(userAccount.getStore().getId())
+                .build();
+    }
+
+    @Override
+    public void logout(String bearerToken) {
+        if (bearerToken == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        refreshTokenService.deleteRefreshToken(userAccount.getId());
+        jwtService.blacklistToken(bearerToken);
     }
 
     @Override

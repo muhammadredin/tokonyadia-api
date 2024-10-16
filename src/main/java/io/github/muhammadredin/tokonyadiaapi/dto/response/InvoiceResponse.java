@@ -18,7 +18,7 @@ public class InvoiceResponse {
     // TODO: Nanti diganti dengan QR/Kode Pembayaran Dari Midtrans
     private String paymentCode;
     private PaymentMethod paymentMethod;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime paymentDueDate;
     private Long totalPayment;
     private PaymentStatus status;

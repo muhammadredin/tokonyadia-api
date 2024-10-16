@@ -11,7 +11,11 @@ public interface JwtService {
 
     String generateToken(UserAccount user);
 
+    void blacklistToken(String bearerToken);
+
     boolean validateToken(String token);
 
     String getUserId(String token);
+
+    Date getExpDate(String token);
 }
