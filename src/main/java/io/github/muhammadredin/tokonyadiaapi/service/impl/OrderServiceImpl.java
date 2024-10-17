@@ -94,6 +94,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public void updateOrderStatus(Order order) {
+        orderRepository.save(order);
+    }
+
+    @Override
     public StoreOrderDetailResponse getOrderDetailByStoreId(String orderId) {
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Store store = userAccount.getStore();

@@ -33,7 +33,7 @@ public class Order {
     @Column(name = "transaction_status", nullable = false)
     private OrderStatus orderStatus;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "invoice_id")
     private Invoice invoice;
 

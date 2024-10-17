@@ -21,7 +21,7 @@ public class ProductRequest {
 
     @NotNull(message = ValidationErrorMessage.PRICE_EMPTY_ERROR)
     @Min(value = 1, message = ValidationErrorMessage.PRICE_VALUE_ERROR)
-    private Integer price;
+    private Long price;
 
     @NotNull(message = ValidationErrorMessage.STOCK_EMPTY_ERROR)
     @Min(value = 0, message = ValidationErrorMessage.STOCK_VALUE_ERROR)

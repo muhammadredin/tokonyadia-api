@@ -10,6 +10,5 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class CheckoutRequest {
-    private String paymentMethod;
     private List<OrderRequest> orders;
 }

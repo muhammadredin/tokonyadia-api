@@ -5,7 +5,7 @@ import io.github.muhammadredin.tokonyadiaapi.constant.PaymentResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CheckoutRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.InvoiceService;
-import io.github.muhammadredin.tokonyadiaapi.service.CheckoutService;
+import io.github.muhammadredin.tokonyadiaapi.service.TransactionService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(APIPath.PAYMENT_API)
 @RequiredArgsConstructor
 public class PaymentController {
-    private final CheckoutService checkoutService;
+    private final TransactionService transactionService;
     private final InvoiceService invoiceService;
 
     @PostMapping
     public ResponseEntity<?> checkoutForPaymentHandler(
             @RequestBody CheckoutRequest request
     ) {
-        return ResponseUtil.buildResponse(HttpStatus.CREATED, PaymentResponseMessage.SUCCESS_CREATE_INVOICE, checkoutService.checkoutCart(request));
+        return ResponseUtil.buildResponse(HttpStatus.CREATED, PaymentResponseMessage.SUCCESS_CREATE_INVOICE, transactionService.checkoutCart(request));
     }
 
     @GetMapping

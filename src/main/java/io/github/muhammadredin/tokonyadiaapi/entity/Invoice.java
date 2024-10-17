@@ -1,8 +1,8 @@
 package io.github.muhammadredin.tokonyadiaapi.entity;
 
-import io.github.muhammadredin.tokonyadiaapi.constant.PaymentStatus;
-import io.github.muhammadredin.tokonyadiaapi.constant.PaymentMethod;
+import io.github.muhammadredin.tokonyadiaapi.constant.PaymentType;
 import io.github.muhammadredin.tokonyadiaapi.constant.TableName;
+import io.github.muhammadredin.tokonyadiaapi.constant.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,36 +22,40 @@ public class Invoice {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", nullable = false)
-    private PaymentMethod paymentMethod;
+    @Column(name = "transaction_id")
+    private String transactionId;
+
+    @Column(name = "midtrans_token")
+    private String midtransToken;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status", nullable = false)
-    private PaymentStatus paymentStatus;
+    @Column(name = "payment_type")
+    private PaymentType paymentType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transaction_status")
+    private TransactionStatus transactionStatus;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "payment_due_date", nullable = false)
-    private LocalDateTime paymentDueDate;
+    @Column(name = "transaction_time")
+    private LocalDateTime transactionTime;
 
-    @Column(name = "total_payment")
-    private Long totalPayment;
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "settlement_time")
+    private LocalDateTime settlementTime;
 
-    // TODO: Nanti diganti dengan payment code dari midtrans
-    @Column(name = "payment_code")
-    private String paymentCode;
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "expiry_time")
+    private LocalDateTime expiryTime;
+
+    @Column(name = "gross_amount")
+    private Long grossAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-    @OneToMany(mappedBy = "invoice")
+    @OneToMany(mappedBy = "invoice", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Order> order;
 
-    @PrePersist
-    protected void onCreate() {
-        paymentDueDate = LocalDateTime.now().plusDays(1);
-        paymentStatus = PaymentStatus.PENDING;
-        paymentCode = UUID.randomUUID().toString();
-    }
 }

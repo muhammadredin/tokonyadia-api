@@ -1,8 +1,6 @@
 package io.github.muhammadredin.tokonyadiaapi.specification;
 
-import io.github.muhammadredin.tokonyadiaapi.constant.PaymentStatus;
 import io.github.muhammadredin.tokonyadiaapi.entity.*;
-import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;

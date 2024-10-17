@@ -66,71 +66,71 @@ public class SeederController {
 
     @PostMapping("/product")
     public void product() {
-        List<ProductRequest> products = List.of(
+//        List<ProductRequest> products = List.of(
                 // Products for TOKO_1
-                ProductRequest.builder().name("Choco Delight").description("Chocolate-filled biscuit").price(6000).stock(10).storeId(TOKO_1).build(),
-                ProductRequest.builder().name("Vanilla Wafer").description("Crispy vanilla wafer").price(4500).stock(15).storeId(TOKO_1).build(),
-                ProductRequest.builder().name("Strawberry Cream").description("Biscuit with strawberry filling").price(5000).stock(8).storeId(TOKO_1).build(),
-                ProductRequest.builder().name("Oatmeal Cookie").description("Healthy oatmeal cookie").price(7000).stock(7).storeId(TOKO_1).build(),
-                ProductRequest.builder().name("Coconut Crunch").description("Crunchy coconut biscuit").price(5300).stock(9).storeId(TOKO_1).build(),
-                ProductRequest.builder().name("Almond Biscuit").description("Biscuit with almond slices").price(7500).stock(6).storeId(TOKO_1).build(),
-                ProductRequest.builder().name("Butter Biscuit").description("Classic buttery biscuit").price(5000).stock(5).storeId(TOKO_1).build(),
-                ProductRequest.builder().name("Honey Graham").description("Honey-flavored crackers").price(4800).stock(10).storeId(TOKO_1).build(),
-                ProductRequest.builder().name("Cheese Biscuit").description("Savoury cheesy biscuit").price(5200).stock(12).storeId(TOKO_1).build(),
-                ProductRequest.builder().name("Ginger Snap").description("Spicy ginger snap biscuit").price(6200).stock(15).storeId(TOKO_1).build(),
-
-                // Products for TOKO_2
-                ProductRequest.builder().name("Choco Delight").description("Chocolate-filled biscuit").price(6000).stock(8).storeId(TOKO_2).build(),
-                ProductRequest.builder().name("Caramel Cookie").description("Soft cookie with caramel filling").price(5400).stock(9).storeId(TOKO_2).build(),
-                ProductRequest.builder().name("Lemon Biscuit").description("Refreshing lemon-flavored biscuit").price(4700).stock(7).storeId(TOKO_2).build(),
-                ProductRequest.builder().name("Vanilla Wafer").description("Crispy vanilla wafer").price(4500).stock(15).storeId(TOKO_2).build(),
-                ProductRequest.builder().name("Butter Biscuit").description("Classic buttery biscuit").price(5000).stock(10).storeId(TOKO_2).build(),
-                ProductRequest.builder().name("Peanut Butter Biscuit").description("Biscuit with peanut butter filling").price(5100).stock(8).storeId(TOKO_2).build(),
-                ProductRequest.builder().name("Raisin Cookie").description("Cookie with raisins").price(6800).stock(5).storeId(TOKO_2).build(),
-                ProductRequest.builder().name("Cinnamon Biscuit").description("Crispy biscuit with cinnamon flavor").price(5900).stock(7).storeId(TOKO_2).build(),
-                ProductRequest.builder().name("Cheese Biscuit").description("Savoury cheesy biscuit").price(5200).stock(9).storeId(TOKO_2).build(),
-                ProductRequest.builder().name("Hazelnut Biscuit").description("Crunchy hazelnut-flavored biscuit").price(6200).stock(6).storeId(TOKO_2).build(),
-
-                // Products for TOKO_3
-                ProductRequest.builder().name("Peanut Butter Biscuit").description("Biscuit with peanut butter filling").price(5100).stock(12).storeId(TOKO_3).build(),
-                ProductRequest.builder().name("Lemon Biscuit").description("Refreshing lemon-flavored biscuit").price(4700).stock(6).storeId(TOKO_3).build(),
-                ProductRequest.builder().name("Caramel Cookie").description("Soft cookie with caramel filling").price(5400).stock(10).storeId(TOKO_3).build(),
-                ProductRequest.builder().name("Coconut Crunch").description("Crunchy coconut biscuit").price(5300).stock(8).storeId(TOKO_3).build(),
-                ProductRequest.builder().name("Oatmeal Cookie").description("Healthy oatmeal cookie").price(7000).stock(7).storeId(TOKO_3).build(),
-                ProductRequest.builder().name("Hazelnut Biscuit").description("Crunchy hazelnut-flavored biscuit").price(6200).stock(4).storeId(TOKO_3).build(),
-                ProductRequest.builder().name("Butter Biscuit").description("Classic buttery biscuit").price(5000).stock(6).storeId(TOKO_3).build(),
-                ProductRequest.builder().name("Vanilla Wafer").description("Crispy vanilla wafer").price(4500).stock(12).storeId(TOKO_3).build(),
-                ProductRequest.builder().name("Raisin Cookie").description("Cookie with raisins").price(6800).stock(9).storeId(TOKO_3).build(),
-                ProductRequest.builder().name("Ginger Snap").description("Spicy ginger snap biscuit").price(6200).stock(5).storeId(TOKO_3).build(),
-
-                // Products for TOKO_4
-                ProductRequest.builder().name("Choco Delight").description("Chocolate-filled biscuit").price(6000).stock(9).storeId(TOKO_4).build(),
-                ProductRequest.builder().name("Cinnamon Biscuit").description("Crispy biscuit with cinnamon flavor").price(5900).stock(5).storeId(TOKO_4).build(),
-                ProductRequest.builder().name("Cheese Biscuit").description("Savoury cheesy biscuit").price(5200).stock(8).storeId(TOKO_4).build(),
-                ProductRequest.builder().name("Honey Graham").description("Honey-flavored crackers").price(4800).stock(7).storeId(TOKO_4).build(),
-                ProductRequest.builder().name("Raisin Cookie").description("Cookie with raisins").price(6800).stock(5).storeId(TOKO_4).build(),
-                ProductRequest.builder().name("Coconut Crunch").description("Crunchy coconut biscuit").price(5300).stock(7).storeId(TOKO_4).build(),
-                ProductRequest.builder().name("Hazelnut Biscuit").description("Crunchy hazelnut-flavored biscuit").price(6200).stock(6).storeId(TOKO_4).build(),
-                ProductRequest.builder().name("Peanut Butter Biscuit").description("Biscuit with peanut butter filling").price(5100).stock(9).storeId(TOKO_4).build(),
-                ProductRequest.builder().name("Oatmeal Cookie").description("Healthy oatmeal cookie").price(7000).stock(5).storeId(TOKO_4).build(),
-                ProductRequest.builder().name("Almond Biscuit").description("Biscuit with almond slices").price(7500).stock(7).storeId(TOKO_4).build(),
-
-                // Products for TOKO_5
-                ProductRequest.builder().name("Choco Delight").description("Chocolate-filled biscuit").price(6000).stock(10).storeId(TOKO_5).build(),
-                ProductRequest.builder().name("Vanilla Wafer").description("Crispy vanilla wafer").price(4500).stock(14).storeId(TOKO_5).build(),
-                ProductRequest.builder().name("Cinnamon Biscuit").description("Crispy biscuit with cinnamon flavor").price(5900).stock(8).storeId(TOKO_5).build(),
-                ProductRequest.builder().name("Honey Graham").description("Honey-flavored crackers").price(4800).stock(6).storeId(TOKO_5).build(),
-                ProductRequest.builder().name("Butter Biscuit").description("Classic buttery biscuit").price(5000).stock(5).storeId(TOKO_5).build(),
-                ProductRequest.builder().name("Strawberry Cream").description("Biscuit with strawberry filling").price(5000).stock(7).storeId(TOKO_5).build(),
-                ProductRequest.builder().name("Oatmeal Cookie").description("Healthy oatmeal cookie").price(7000).stock(9).storeId(TOKO_5).build(),
-                ProductRequest.builder().name("Caramel Cookie").description("Soft cookie with caramel filling").price(5400).stock(7).storeId(TOKO_5).build(),
-                ProductRequest.builder().name("Hazelnut Biscuit").description("Crunchy hazelnut-flavored biscuit").price(6200).stock(6).storeId(TOKO_5).build(),
-                ProductRequest.builder().name("Peanut Butter Biscuit").description("Biscuit with peanut butter filling").price(5100).stock(11).storeId(TOKO_5).build()
-        );
-
-        for (ProductRequest product: products) {
-            productService.createProduct(product);
-        }
+//                ProductRequest.builder().name("Choco Delight").description("Chocolate-filled biscuit").price(6000).stock(10).storeId(TOKO_1).build(),
+//                ProductRequest.builder().name("Vanilla Wafer").description("Crispy vanilla wafer").price(4500).stock(15).storeId(TOKO_1).build(),
+//                ProductRequest.builder().name("Strawberry Cream").description("Biscuit with strawberry filling").price(5000).stock(8).storeId(TOKO_1).build(),
+//                ProductRequest.builder().name("Oatmeal Cookie").description("Healthy oatmeal cookie").price(7000).stock(7).storeId(TOKO_1).build(),
+//                ProductRequest.builder().name("Coconut Crunch").description("Crunchy coconut biscuit").price(5300).stock(9).storeId(TOKO_1).build(),
+//                ProductRequest.builder().name("Almond Biscuit").description("Biscuit with almond slices").price(7500).stock(6).storeId(TOKO_1).build(),
+//                ProductRequest.builder().name("Butter Biscuit").description("Classic buttery biscuit").price(5000).stock(5).storeId(TOKO_1).build(),
+//                ProductRequest.builder().name("Honey Graham").description("Honey-flavored crackers").price(4800).stock(10).storeId(TOKO_1).build(),
+//                ProductRequest.builder().name("Cheese Biscuit").description("Savoury cheesy biscuit").price(5200).stock(12).storeId(TOKO_1).build(),
+//                ProductRequest.builder().name("Ginger Snap").description("Spicy ginger snap biscuit").price(6200).stock(15).storeId(TOKO_1).build(),
+//
+//                // Products for TOKO_2
+//                ProductRequest.builder().name("Choco Delight").description("Chocolate-filled biscuit").price(6000).stock(8).storeId(TOKO_2).build(),
+//                ProductRequest.builder().name("Caramel Cookie").description("Soft cookie with caramel filling").price(5400).stock(9).storeId(TOKO_2).build(),
+//                ProductRequest.builder().name("Lemon Biscuit").description("Refreshing lemon-flavored biscuit").price(4700).stock(7).storeId(TOKO_2).build(),
+//                ProductRequest.builder().name("Vanilla Wafer").description("Crispy vanilla wafer").price(4500).stock(15).storeId(TOKO_2).build(),
+//                ProductRequest.builder().name("Butter Biscuit").description("Classic buttery biscuit").price(5000).stock(10).storeId(TOKO_2).build(),
+//                ProductRequest.builder().name("Peanut Butter Biscuit").description("Biscuit with peanut butter filling").price(5100).stock(8).storeId(TOKO_2).build(),
+//                ProductRequest.builder().name("Raisin Cookie").description("Cookie with raisins").price(6800).stock(5).storeId(TOKO_2).build(),
+//                ProductRequest.builder().name("Cinnamon Biscuit").description("Crispy biscuit with cinnamon flavor").price(5900).stock(7).storeId(TOKO_2).build(),
+//                ProductRequest.builder().name("Cheese Biscuit").description("Savoury cheesy biscuit").price(5200).stock(9).storeId(TOKO_2).build(),
+//                ProductRequest.builder().name("Hazelnut Biscuit").description("Crunchy hazelnut-flavored biscuit").price(6200).stock(6).storeId(TOKO_2).build(),
+//
+//                // Products for TOKO_3
+//                ProductRequest.builder().name("Peanut Butter Biscuit").description("Biscuit with peanut butter filling").price(5100).stock(12).storeId(TOKO_3).build(),
+//                ProductRequest.builder().name("Lemon Biscuit").description("Refreshing lemon-flavored biscuit").price(4700).stock(6).storeId(TOKO_3).build(),
+//                ProductRequest.builder().name("Caramel Cookie").description("Soft cookie with caramel filling").price(5400).stock(10).storeId(TOKO_3).build(),
+//                ProductRequest.builder().name("Coconut Crunch").description("Crunchy coconut biscuit").price(5300).stock(8).storeId(TOKO_3).build(),
+//                ProductRequest.builder().name("Oatmeal Cookie").description("Healthy oatmeal cookie").price(7000).stock(7).storeId(TOKO_3).build(),
+//                ProductRequest.builder().name("Hazelnut Biscuit").description("Crunchy hazelnut-flavored biscuit").price(6200).stock(4).storeId(TOKO_3).build(),
+//                ProductRequest.builder().name("Butter Biscuit").description("Classic buttery biscuit").price(5000).stock(6).storeId(TOKO_3).build(),
+//                ProductRequest.builder().name("Vanilla Wafer").description("Crispy vanilla wafer").price(4500).stock(12).storeId(TOKO_3).build(),
+//                ProductRequest.builder().name("Raisin Cookie").description("Cookie with raisins").price(6800).stock(9).storeId(TOKO_3).build(),
+//                ProductRequest.builder().name("Ginger Snap").description("Spicy ginger snap biscuit").price(6200).stock(5).storeId(TOKO_3).build(),
+//
+//                // Products for TOKO_4
+//                ProductRequest.builder().name("Choco Delight").description("Chocolate-filled biscuit").price(6000).stock(9).storeId(TOKO_4).build(),
+//                ProductRequest.builder().name("Cinnamon Biscuit").description("Crispy biscuit with cinnamon flavor").price(5900).stock(5).storeId(TOKO_4).build(),
+//                ProductRequest.builder().name("Cheese Biscuit").description("Savoury cheesy biscuit").price(5200).stock(8).storeId(TOKO_4).build(),
+//                ProductRequest.builder().name("Honey Graham").description("Honey-flavored crackers").price(4800).stock(7).storeId(TOKO_4).build(),
+//                ProductRequest.builder().name("Raisin Cookie").description("Cookie with raisins").price(6800).stock(5).storeId(TOKO_4).build(),
+//                ProductRequest.builder().name("Coconut Crunch").description("Crunchy coconut biscuit").price(5300).stock(7).storeId(TOKO_4).build(),
+//                ProductRequest.builder().name("Hazelnut Biscuit").description("Crunchy hazelnut-flavored biscuit").price(6200).stock(6).storeId(TOKO_4).build(),
+//                ProductRequest.builder().name("Peanut Butter Biscuit").description("Biscuit with peanut butter filling").price(5100).stock(9).storeId(TOKO_4).build(),
+//                ProductRequest.builder().name("Oatmeal Cookie").description("Healthy oatmeal cookie").price(7000).stock(5).storeId(TOKO_4).build(),
+//                ProductRequest.builder().name("Almond Biscuit").description("Biscuit with almond slices").price(7500).stock(7).storeId(TOKO_4).build(),
+//
+//                // Products for TOKO_5
+//                ProductRequest.builder().name("Choco Delight").description("Chocolate-filled biscuit").price(6000).stock(10).storeId(TOKO_5).build(),
+//                ProductRequest.builder().name("Vanilla Wafer").description("Crispy vanilla wafer").price(4500).stock(14).storeId(TOKO_5).build(),
+//                ProductRequest.builder().name("Cinnamon Biscuit").description("Crispy biscuit with cinnamon flavor").price(5900).stock(8).storeId(TOKO_5).build(),
+//                ProductRequest.builder().name("Honey Graham").description("Honey-flavored crackers").price(4800).stock(6).storeId(TOKO_5).build(),
+//                ProductRequest.builder().name("Butter Biscuit").description("Classic buttery biscuit").price(5000).stock(5).storeId(TOKO_5).build(),
+//                ProductRequest.builder().name("Strawberry Cream").description("Biscuit with strawberry filling").price(5000).stock(7).storeId(TOKO_5).build(),
+//                ProductRequest.builder().name("Oatmeal Cookie").description("Healthy oatmeal cookie").price(7000).stock(9).storeId(TOKO_5).build(),
+//                ProductRequest.builder().name("Caramel Cookie").description("Soft cookie with caramel filling").price(5400).stock(7).storeId(TOKO_5).build(),
+//                ProductRequest.builder().name("Hazelnut Biscuit").description("Crunchy hazelnut-flavored biscuit").price(6200).stock(6).storeId(TOKO_5).build(),
+//                ProductRequest.builder().name("Peanut Butter Biscuit").description("Biscuit with peanut butter filling").price(5100).stock(11).storeId(TOKO_5).build()
+//        );
+//
+//        for (ProductRequest product: products) {
+//            productService.createProduct(product);
+//        }
 
     }
 }

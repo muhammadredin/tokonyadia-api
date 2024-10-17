@@ -1,6 +1,7 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.InvoiceResponseMessage;
+import io.github.muhammadredin.tokonyadiaapi.constant.TransactionStatus;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PaymentDetailResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.InvoiceResponse;
@@ -81,8 +82,8 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
 
         return PaymentDetailResponse.builder()
-                .totalPrice(invoice.getTotalPayment())
-                .paymentMethod(invoice.getPaymentMethod().name())
+                .totalPrice(invoice.getGrossAmount())
+                .paymentMethod(invoice.getPaymentType().name())
                 .orders(orderList)
                 .build();
     }
@@ -92,15 +93,20 @@ public class InvoiceServiceImpl implements InvoiceService {
         return invoiceRepository.findById(id).orElseThrow();
     }
 
+    @Override
+    public Invoice setInvoiceStatus(String invoiceId, String transactionStatus) {
+        Invoice invoice = getOne(invoiceId);
+        invoice.setTransactionStatus(TransactionStatus.fromDescription(transactionStatus));
+        return invoiceRepository.saveAndFlush(invoice);
+    }
+
     public InvoiceResponse toInvoiceResponse(Invoice invoice) {
         return InvoiceResponse.builder()
                 .id(invoice.getId())
-                .paymentDueDate(invoice.getPaymentDueDate())
-                .paymentCode(invoice.getPaymentCode())
-                .paymentMethod(invoice.getPaymentMethod())
-
-                .totalPayment(invoice.getTotalPayment())
-                .status(invoice.getPaymentStatus())
+                .expiryDate(invoice.getExpiryTime())
+                .paymentType(invoice.getPaymentType())
+                .grossAmount(invoice.getGrossAmount())
+                .transactionStatus(invoice.getTransactionStatus())
                 .build();
     }
 }

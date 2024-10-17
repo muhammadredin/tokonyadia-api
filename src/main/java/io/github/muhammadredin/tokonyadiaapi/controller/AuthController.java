@@ -12,14 +12,12 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
@@ -57,6 +55,11 @@ public class AuthController {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
         authService.logout(bearerToken);
         return ResponseUtil.buildResponse(HttpStatus.OK, UserResponseMessage.USER_LOGOUT_SUCCESS, null);
+    }
+
+    @GetMapping("/hello")
+    public ResponseEntity<?> helloHandler(HttpServletRequest request, HttpServletResponse response) {
+        return ResponseUtil.buildResponse(HttpStatus.OK, "HELLO THERE", null);
     }
 
     private String getRefreshTokenFromCookie(HttpServletRequest request) {

@@ -10,6 +10,6 @@ import lombok.*;
 public class ProductOrderResponse {
     private String productId;
     private String productName;
-    private Integer productPrice;
+    private Long productPrice;
     private Integer quantity;
 }

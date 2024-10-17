@@ -18,5 +18,7 @@ public interface OrderService {
 
     List<StoreOrderResponse> getAllOrderByStoreId(String storeId);
 
+    void updateOrderStatus(Order order);
+
     StoreOrderDetailResponse getOrderDetailByStoreId(String orderId);
 }

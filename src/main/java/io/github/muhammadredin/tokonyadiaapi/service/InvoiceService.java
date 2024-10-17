@@ -14,4 +14,6 @@ public interface InvoiceService {
     PaymentDetailResponse getCustomerPaymentDetail(String id);
 
     Invoice getOne(String id);
+
+    Invoice setInvoiceStatus(String invoiceId, String transactionStatus);
 }

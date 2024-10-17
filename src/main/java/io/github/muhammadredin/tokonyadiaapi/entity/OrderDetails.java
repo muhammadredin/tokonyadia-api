@@ -20,7 +20,7 @@ public class OrderDetails {
     private Integer quantity;
 
     @Column(name = "price", nullable = false)
-    private Integer price;
+    private Long price;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
