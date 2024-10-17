@@ -177,7 +177,7 @@ public class TransactionServiceImpl implements TransactionService {
             return;
         }
 
-        if ("expired".equals(status)) {
+        if ("expire".equals(status)) {
             Invoice invoice = invoiceService.setInvoiceStatus(invoiceId, status);
 
             for (Order order : invoice.getOrder()) {
