@@ -34,4 +34,7 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer", fetch = FetchType.EAGER)
     private Set<Cart> cart;
+
+    @OneToOne(mappedBy = "customer", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private CustomerImage customerImage;
 }

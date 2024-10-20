@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -25,6 +26,7 @@ public class MidtransServiceImpl implements MidtransService {
     @Value("${tokonyadia.api.midtrans-snap-payment-url}")
     private String MIDTRANS_URL;
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public MidtransSnapResponse chargePayment(Object paymentRequest) throws JsonProcessingException {
         // Convert the map to JSON using ObjectMapper

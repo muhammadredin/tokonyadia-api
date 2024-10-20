@@ -7,10 +7,8 @@ import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.service.*;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,8 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Duration;
-import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -71,12 +67,15 @@ public class AuthServiceImpl implements AuthService {
         UserAccount userAccount = userAccountService.getOne(userId);
         String accessToken = jwtService.generateToken(userAccount);
 
+        Optional<Customer> customer = Optional.ofNullable(userAccount.getCustomer());
+        Optional<Store> store = Optional.ofNullable(userAccount.getStore());
+
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(newRefreshToken)
                 .role(userAccount.getRole().name())
-                .customerId(userAccount.getCustomer().getId())
-                .storeId(userAccount.getStore().getId())
+                .customerId(customer.map(Customer::getId).orElse(null))
+                .storeId(store.map(Store::getId).orElse(null))
                 .build();
     }
 

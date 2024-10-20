@@ -11,4 +11,5 @@ public class CustomerResponse {
     private String id;
     private String name;
     private String address;
+    private FileResponse profileImage;
 }

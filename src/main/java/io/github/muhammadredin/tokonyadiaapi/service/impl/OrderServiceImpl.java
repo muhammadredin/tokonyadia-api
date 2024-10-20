@@ -1,17 +1,16 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.OrderResponseMessage;
+import io.github.muhammadredin.tokonyadiaapi.constant.OrderStatus;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreOrderDetailResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.OrderDetailResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductOrderResponse;
-import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreOrderResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Order;
 import io.github.muhammadredin.tokonyadiaapi.entity.OrderDetails;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.OrderRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.*;
-import io.github.muhammadredin.tokonyadiaapi.specification.OrderSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
@@ -29,8 +28,8 @@ import java.util.List;
 @Slf4j
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
-    private final StoreService storeService;;
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public Order createOrder(Order request) {
         return orderRepository.saveAndFlush(request);
@@ -73,31 +72,26 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Order getOne(String orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found"));
     }
 
-    @Override
-    public List<StoreOrderResponse> getAllOrderByStoreId(String storeId) {
-        Specification<Order> specification = OrderSpecification.storeTransactionDetails(storeService.getOne(storeId));
-        return orderRepository.findAll(specification).stream()
-                .map(o -> {
-                    return StoreOrderResponse.builder()
-                            .orderId(o.getId())
-                            .customerName(o.getInvoice().getCustomer().getName())
-                            .orderStatus(o.getOrderStatus().name())
-                            .build();
-                })
-                .toList();
-    }
-
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void updateOrderStatus(Order order) {
         orderRepository.save(order);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<Order> getOrdersBySpecification(Specification<Order> specification) {
+        return orderRepository.findAll(specification);
+    }
+
+    @Transactional(readOnly = true)
     @Override
     public StoreOrderDetailResponse getOrderDetailByStoreId(String orderId) {
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

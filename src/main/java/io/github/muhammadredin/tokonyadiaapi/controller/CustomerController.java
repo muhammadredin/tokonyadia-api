@@ -1,5 +1,6 @@
 package io.github.muhammadredin.tokonyadiaapi.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.muhammadredin.tokonyadiaapi.constant.APIPath;
 import io.github.muhammadredin.tokonyadiaapi.constant.CustomerResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.*;
@@ -12,12 +13,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping(APIPath.CUSTOMER_API)
 @RequiredArgsConstructor
 public class CustomerController {
     private final CustomerService customerService;
+    private final ObjectMapper objectMapper;
     private final CartService cartService;
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('STORE')")
@@ -54,13 +60,19 @@ public class CustomerController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @PostMapping
     public ResponseEntity<?> createCustomerHandler(
-            @Valid @RequestBody CustomerRequest customer
+            @RequestParam String customer,
+            @RequestParam MultipartFile image
     ) {
-        return ResponseUtil.buildResponse(
-                HttpStatus.CREATED,
-                CustomerResponseMessage.CUSTOMER_CREATE_SUCCESS,
-                customerService.createCustomer(customer)
-        );
+        try {
+            CustomerRequest customerRequest = objectMapper.readValue(customer, CustomerRequest.class);
+            return ResponseUtil.buildResponse(
+                    HttpStatus.CREATED,
+                    CustomerResponseMessage.CUSTOMER_CREATE_SUCCESS,
+                    customerService.createCustomer(customerRequest, image)
+            );
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
@@ -77,11 +89,36 @@ public class CustomerController {
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
+    @PutMapping("/{id}/image")
+    public ResponseEntity<?> updateCustomerImageHandler(
+            @PathVariable String id,
+            @RequestParam MultipartFile image
+    ) {
+        return ResponseUtil.buildResponse(
+                HttpStatus.OK,
+                CustomerResponseMessage.CUSTOMER_UPDATE_SUCCESS,
+                customerService.updateCustomerImage(image)
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
+    @DeleteMapping("/{id}/image")
+    public ResponseEntity<?> deleteCustomerImageHandler(
+            @PathVariable String id
+    ) {
+        return ResponseUtil.buildResponse(
+                HttpStatus.OK,
+                CustomerResponseMessage.CUSTOMER_UPDATE_SUCCESS,
+                customerService.deleteCustomerImage()
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCustomerHandler(
             @PathVariable String id
     ) {
-        customerService.deleteCustomer(id);
+        customerService.deleteCustomer();
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 CustomerResponseMessage.CUSTOMER_DELETE_SUCCESS,

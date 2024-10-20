@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final ProductService productService;
 
+    @Transactional(readOnly = true)
     @Override
     public List<CartResponse> getAllProduct() {
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -34,6 +36,7 @@ public class CartServiceImpl implements CartService {
         return cart.stream().map(this::toCartResponse).toList();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void addProductToCart(CartRequest request) {
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -60,6 +63,7 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void updateProductQuantity(String cartId, CartUpdateProductQuantityRequest request) {
         Cart cart = getOne(cartId);
@@ -68,17 +72,20 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Cart getOne(String id) {
         return cartRepository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format(CartResponseMessage.ERROR_CART_NOT_FOUND, id)));
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteCart(Cart cart) {
         cartRepository.delete(cart);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteCartById(String cartId) {
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

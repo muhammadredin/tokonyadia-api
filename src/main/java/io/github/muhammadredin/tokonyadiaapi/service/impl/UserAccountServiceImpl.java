@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void createUserAccount(UserAccountRequest request) {
         UserAccount userAccount = toUserAccount(request);
@@ -37,12 +39,13 @@ public class UserAccountServiceImpl implements UserAccountService {
         userAccountRepository.save(userAccount);
     }
 
-
+    @Transactional(readOnly = true)
     @Override
     public UserAccount getOne(String id) {
         return (UserAccount) loadUserByUsername(id);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public UserDetails loadUserByUsername(String credential) throws UsernameNotFoundException {
         Optional<UserAccount> userAccount = userAccountRepository.findByUsername(credential);

@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -30,11 +31,13 @@ import java.util.List;
 public class InvoiceServiceImpl implements InvoiceService {
     private final InvoiceRepository invoiceRepository;
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public Invoice createInvoice(Invoice request) {
         return invoiceRepository.saveAndFlush(request);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Page<InvoiceResponse> getAllCustomerInvoice(PagingAndSortingRequest request) {
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -50,6 +53,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         return invoiceRepository.getInvoiceByCustomer(customer, pageable).map(this::toInvoiceResponse);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public PaymentDetailResponse getCustomerPaymentDetail(String id) {
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -88,11 +92,13 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Invoice getOne(String id) {
         return invoiceRepository.findById(id).orElseThrow();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public Invoice setInvoiceStatus(String invoiceId, String transactionStatus) {
         Invoice invoice = getOne(invoiceId);

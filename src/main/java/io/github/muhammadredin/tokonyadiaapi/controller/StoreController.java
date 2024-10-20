@@ -99,13 +99,13 @@ public class StoreController {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 StoreResponseMessage.STORE_GET_SUCCESS,
-                orderService.getAllOrderByStoreId(id)
+                storeService.getAllStoreOrders(id)
         );
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.storeServiceEval(#id)")
     @GetMapping("/{id}/order/detail/{orderId}")
-    public ResponseEntity<?> getAllOrderDetail(
+    public ResponseEntity<?> getOrderDetail(
             @PathVariable String id,
             @PathVariable String orderId
     ) {
@@ -113,6 +113,20 @@ public class StoreController {
                 HttpStatus.OK,
                 StoreResponseMessage.STORE_GET_SUCCESS,
                 orderService.getOrderDetailByStoreId(orderId)
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.storeServiceEval(#id)")
+    @PutMapping("/{id}/order/detail/{orderId}/process")
+    public ResponseEntity<?> processOrderById(
+            @PathVariable String id,
+            @PathVariable String orderId
+    ) {
+        storeService.processOrder(orderId);
+        return ResponseUtil.buildResponse(
+                HttpStatus.OK,
+                StoreResponseMessage.STORE_GET_SUCCESS,
+                null
         );
     }
 }

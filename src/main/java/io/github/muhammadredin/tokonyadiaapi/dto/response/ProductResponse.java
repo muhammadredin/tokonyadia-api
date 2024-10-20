@@ -3,6 +3,8 @@ package io.github.muhammadredin.tokonyadiaapi.dto.response;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -15,4 +17,5 @@ public class ProductResponse {
     private Long price;
     private Integer stock;
     private String storeName;
+    private List<FileResponse> images;
 }

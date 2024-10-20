@@ -41,4 +41,7 @@ public class Product {
 
     @OneToMany(mappedBy = "product")
     private Set<Cart> cart;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ProductImage> productImages;
 }
