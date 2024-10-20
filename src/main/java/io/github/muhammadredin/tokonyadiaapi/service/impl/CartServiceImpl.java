@@ -11,6 +11,7 @@ import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.CartRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.CartService;
 import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
+import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,6 +27,7 @@ import java.util.Set;
 public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final ProductService productService;
+    private final ValidationUtil validationUtil;
 
     @Transactional(readOnly = true)
     @Override
@@ -39,6 +41,7 @@ public class CartServiceImpl implements CartService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void addProductToCart(CartRequest request) {
+        validationUtil.validate(request);
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Customer customer = userAccount.getCustomer();
         Product product = productService.getOne(request.getProductId());
@@ -66,6 +69,7 @@ public class CartServiceImpl implements CartService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void updateProductQuantity(String cartId, CartUpdateProductQuantityRequest request) {
+        validationUtil.validate(request);
         Cart cart = getOne(cartId);
         checkQuantityToStock(request.getQuantity(), cart.getProduct().getStock());
         cart.setQuantity(request.getQuantity());

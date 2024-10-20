@@ -2,8 +2,10 @@ package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.midtransRequest.PaymentRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.midtransResponse.MidtransSnapResponse;
 import io.github.muhammadredin.tokonyadiaapi.service.MidtransService;
+import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +22,7 @@ import java.util.*;
 @Slf4j
 public class MidtransServiceImpl implements MidtransService {
     private final RestTemplate restTemplate;
-
+    private final ValidationUtil validationUtil;
     private final ObjectMapper objectMapper;
 
     @Value("${tokonyadia.api.midtrans-snap-payment-url}")
@@ -28,7 +30,9 @@ public class MidtransServiceImpl implements MidtransService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public MidtransSnapResponse chargePayment(Object paymentRequest) throws JsonProcessingException {
+    public MidtransSnapResponse chargePayment(PaymentRequest paymentRequest) throws JsonProcessingException {
+        validationUtil.validate(paymentRequest);
+
         // Convert the map to JSON using ObjectMapper
         String jsonBody = objectMapper.writeValueAsString(paymentRequest);
 

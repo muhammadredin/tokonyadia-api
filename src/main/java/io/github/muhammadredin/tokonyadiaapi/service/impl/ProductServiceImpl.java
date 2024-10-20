@@ -16,6 +16,7 @@ import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
 import io.github.muhammadredin.tokonyadiaapi.specification.ProductSpecification;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
+import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -38,6 +39,7 @@ import java.util.Objects;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductImageService productImageService;
+    private final ValidationUtil validationUtil;
     private final AuthService authService;
 
     @Transactional(rollbackFor = Exception.class)
@@ -85,14 +87,15 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public ProductResponse updateProduct(String id, ProductRequest product) {
-        Product getProduct = getOne(id);
-        getProduct.setName(product.getName());
-        getProduct.setPrice(product.getPrice());
-        getProduct.setDescription(product.getDescription());
-        getProduct.setStock(product.getStock());
+    public ProductResponse updateProduct(String id, ProductRequest request) {
+        validationUtil.validate(request);
+        Product product = getOne(id);
+        product.setName(request.getName());
+        product.setPrice(request.getPrice());
+        product.setDescription(request.getDescription());
+        product.setStock(request.getStock());
 
-        return toProductResponse(productRepository.save(getProduct));
+        return toProductResponse(productRepository.save(product));
     }
 
     @Transactional(rollbackFor = Exception.class)

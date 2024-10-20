@@ -8,6 +8,7 @@ import io.github.muhammadredin.tokonyadiaapi.dto.response.UserResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.UserAccountRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.UserAccountService;
+import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +30,12 @@ import java.util.Optional;
 public class UserAccountServiceImpl implements UserAccountService {
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ValidationUtil validationUtil;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void createUserAccount(UserAccountRequest request) {
+        validationUtil.validate(request);
         UserAccount userAccount = toUserAccount(request);
         List<String> errors = checkUserAccount(userAccount);
         if (!errors.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());

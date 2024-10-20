@@ -14,7 +14,7 @@ public interface CustomerService {
 
     CustomerResponse getCustomerById(String id);
     Page<CustomerResponse> searchCustomers(SearchCustomerRequest request);
-    CustomerResponse updateCustomer(String id, CustomerUpdateRequest customer);
+    CustomerResponse updateCustomer(String id, CustomerUpdateRequest request);
 
     CustomerResponse updateCustomerImage(MultipartFile image);
 

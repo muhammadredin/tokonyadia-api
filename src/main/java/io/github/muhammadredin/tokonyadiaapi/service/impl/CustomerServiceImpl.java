@@ -16,6 +16,7 @@ import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
 import io.github.muhammadredin.tokonyadiaapi.specification.CustomerSpecification;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
+import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -36,11 +37,13 @@ import java.util.List;
 public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final CustomerImageService customerImageService;
+    private final ValidationUtil validationUtil;
     private final AuthService authService;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public CustomerResponse createCustomer(CustomerRequest request, MultipartFile image) {
+        validationUtil.validate(request);
         List<String> errors = checkCustomer();
 
         if (!errors.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
@@ -81,10 +84,11 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public CustomerResponse updateCustomer(String id, CustomerUpdateRequest customer) {
+    public CustomerResponse updateCustomer(String id, CustomerUpdateRequest request) {
+        validationUtil.validate(request);
         Customer updatedCustomer = getOne(id);
-        updatedCustomer.setName(customer.getName());
-        updatedCustomer.setAddress(customer.getAddress());
+        updatedCustomer.setName(request.getName());
+        updatedCustomer.setAddress(request.getAddress());
         customerRepository.save(updatedCustomer);
         return toCustomerResponse(updatedCustomer);
     }

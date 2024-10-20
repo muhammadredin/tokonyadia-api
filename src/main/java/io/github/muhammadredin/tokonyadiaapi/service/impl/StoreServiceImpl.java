@@ -19,6 +19,7 @@ import io.github.muhammadredin.tokonyadiaapi.specification.OrderSpecification;
 import io.github.muhammadredin.tokonyadiaapi.specification.StoreSpecification;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
+import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -38,15 +39,17 @@ public class StoreServiceImpl implements StoreService {
     private final StoreRepository storeRepository;
     private final ProductService productService;
     private final OrderService orderService;
+    private final ValidationUtil validationUtil;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public StoreResponse createStore(StoreRequest store) {
-        List<String> errors = checkStore(store.getNoSiup(), store.getName());
+    public StoreResponse createStore(StoreRequest request) {
+        validationUtil.validate(request);
+        List<String> errors = checkStore(request.getNoSiup(), request.getName());
 
         if (!errors.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
 
-        return toStoreResponse(storeRepository.save(toStore(store)));
+        return toStoreResponse(storeRepository.save(toStore(request)));
     }
 
     @Transactional(readOnly = true)
@@ -54,13 +57,6 @@ public class StoreServiceImpl implements StoreService {
     public StoreResponse getStoreById(String id) {
         Store store = getOne(id);
         return toStoreResponse(store);
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public StoreWithProductsResponse getStoreByIdWithProducts(String id) {
-        Store store = getOne(id);
-        return toStoreWithProductsResponse(store);
     }
 
     @Transactional(readOnly = true)
@@ -84,6 +80,7 @@ public class StoreServiceImpl implements StoreService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public StoreResponse updateStore(String id, StoreRequest request) {
+        validationUtil.validate(request);
         Store store = getOne(id);
         store.setNoSiup(request.getNoSiup());
         store.setName(request.getName());

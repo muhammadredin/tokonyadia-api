@@ -15,17 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 public interface StoreService {
-    StoreResponse createStore(StoreRequest store);
+    StoreResponse createStore(StoreRequest request);
 
     StoreResponse getStoreById(String id);
-
-    StoreWithProductsResponse getStoreByIdWithProducts(String id);
 
     Store getOne(String id);
 
     Page<StoreResponse> getAllStore(SearchStoreRequest request);
 
-    StoreResponse updateStore(String id, StoreRequest store);
+    StoreResponse updateStore(String id, StoreRequest request);
 
     void deleteStore(String id);
 

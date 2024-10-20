@@ -36,4 +36,7 @@ public class Store {
 
     @OneToMany(mappedBy = "store", fetch = FetchType.LAZY)
     private List<Product> products;
+
+    @OneToOne(mappedBy = "store")
+    private StoreImage storeImage;
 }

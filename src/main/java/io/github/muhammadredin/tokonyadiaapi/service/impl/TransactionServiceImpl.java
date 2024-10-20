@@ -11,6 +11,7 @@ import io.github.muhammadredin.tokonyadiaapi.dto.request.midtransRequest.*;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.midtransResponse.MidtransSnapResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.*;
 import io.github.muhammadredin.tokonyadiaapi.service.*;
+import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -33,10 +34,12 @@ public class TransactionServiceImpl implements TransactionService {
     private final InvoiceService invoiceService;
     private final CartService cartService;
     private final MidtransService midtransService;
+    private final ValidationUtil validationUtil;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public MidtransSnapResponse checkoutCart(CheckoutRequest request) {
+        validationUtil.validate(request);
         Long totalPayment = 0L;
 
         // Create Customer Detail

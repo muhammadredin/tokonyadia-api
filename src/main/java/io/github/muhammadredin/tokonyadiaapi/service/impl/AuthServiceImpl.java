@@ -7,6 +7,7 @@ import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.service.*;
+import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -27,9 +28,11 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final UserAccountService userAccountService;
+    private final ValidationUtil validationUtil;
 
     @Override
     public LoginResponse login(LoginRequest request) {
+        validationUtil.validate(request);
         try {
             log.info("Login request: {}", request);
             Authentication authentication = authenticationManager
