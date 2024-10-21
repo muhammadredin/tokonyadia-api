@@ -43,7 +43,7 @@ public class StoreServiceImpl implements StoreService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public StoreResponse createStore(StoreRequest request, MultipartFile image) {
+    public StoreResponse createStore(StoreRequest request, List<MultipartFile> image) {
         // Validate the store request
         validationUtil.validate(request);
         List<String> errors = checkStore(request.getNoSiup(), request.getName());
@@ -51,12 +51,13 @@ public class StoreServiceImpl implements StoreService {
             log.error("Store creation failed: {}", errors);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
         }
+        if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
 
         Store store = storeRepository.save(toStore(request));
         log.info("Store created successfully with ID: {}", store.getId());
 
-        if (!Objects.requireNonNull(image.getOriginalFilename()).isEmpty()) {
-            StoreImage storeImage = storeImageService.saveImage(image, store);
+        if (!Objects.requireNonNull(image.get(0).getOriginalFilename()).isEmpty()) {
+            StoreImage storeImage = storeImageService.saveImage(image.get(0), store);
             store.setStoreImage(storeImage);
 
             log.info("Store image saved for customer ID: {}", storeImage.getId());
@@ -109,26 +110,29 @@ public class StoreServiceImpl implements StoreService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public StoreResponse updateStoreImage(MultipartFile image) {
-        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Store store = userAccount.getStore();
+    public StoreResponse updateStoreImage(String id, List<MultipartFile> image) {
+        if (Objects.requireNonNull(image.get(0).getOriginalFilename()).isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image should not be empty");
+        if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
 
-        StoreImage storeImage = storeImageService.updateImage(image, store);
+        Store store = getOne(id);
+
+        StoreImage storeImage = storeImageService.updateImage(image.get(0), store);
         store.setStoreImage(storeImage);
+
         storeRepository.saveAndFlush(store);
         log.info("Updated image for store: {}", store);
+
         return toStoreResponse(store);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public StoreResponse deleteStoreImage() {
-        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Store store = userAccount.getStore();
+    public StoreResponse deleteStoreImage(String id) {
+        Store store = getOne(id);
 
         if (store.getStoreImage() == null) {
             log.warn("Attempted to delete image for store with no existing image: {}", store);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Store doesn't have image to be deleted");
         }
 
         storeImageService.deleteImage(store.getStoreImage());
@@ -190,6 +194,7 @@ public class StoreServiceImpl implements StoreService {
 
     private List<String> checkStore(String noSiup, String phoneNumber) {
         List<String> errors = new ArrayList<>();
+
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (storeRepository.existsByUserAccount(userAccount)) {
             errors.add(StoreResponseMessage.STORE_ACCOUNT_EXIST_ERROR);

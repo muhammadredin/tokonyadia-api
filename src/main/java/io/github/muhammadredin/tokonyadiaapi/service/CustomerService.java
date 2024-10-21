@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface CustomerService {
-    CustomerResponse createCustomer(CustomerRequest request, MultipartFile image);
+    CustomerResponse createCustomer(CustomerRequest request, List<MultipartFile> image);
 
     Customer getOne(String id);
 
@@ -16,7 +16,7 @@ public interface CustomerService {
     Page<CustomerResponse> searchCustomers(SearchCustomerRequest request);
     CustomerResponse updateCustomer(String id, CustomerUpdateRequest request);
 
-    CustomerResponse updateCustomerImage(MultipartFile image);
+    CustomerResponse updateCustomerImage(List<MultipartFile> image);
 
     CustomerResponse deleteCustomerImage();
 

@@ -45,7 +45,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public CustomerResponse createCustomer(CustomerRequest request, MultipartFile image) {
+    public CustomerResponse createCustomer(CustomerRequest request, List<MultipartFile> image) {
         log.info("Creating new customer with request: {}", request);
         validationUtil.validate(request);
         List<String> errors = checkCustomer();
@@ -55,12 +55,13 @@ public class CustomerServiceImpl implements CustomerService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
         }
 
+        if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
 
         Customer customer = customerRepository.saveAndFlush(toCustomer(request));
         log.info("Customer created successfully with ID: {}", customer.getId());
 
-        if (!Objects.requireNonNull(image.getOriginalFilename()).isEmpty()) {
-            CustomerImage customerImage = customerImageService.saveImage(image, customer);
+        if (!Objects.requireNonNull(image.get(0).getOriginalFilename()).isEmpty()) {
+            CustomerImage customerImage = customerImageService.saveImage(image.get(0), customer);
             customer.setCustomerImage(customerImage);
 
             log.info("Customer image saved for customer ID: {}", customer.getId());
@@ -122,12 +123,15 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public CustomerResponse updateCustomerImage(MultipartFile image) {
+    public CustomerResponse updateCustomerImage(List<MultipartFile> image) {
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Customer customer = userAccount.getCustomer();
 
+        if (Objects.requireNonNull(image.get(0).getOriginalFilename()).isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image should not be empty");
+        if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
+
         log.info("Updating customer image for customer ID: {}", customer.getId());
-        CustomerImage customerImage = customerImageService.updateImage(image, customer);
+        CustomerImage customerImage = customerImageService.updateImage(image.get(0), customer);
         customer.setCustomerImage(customerImage);
 
         customerRepository.save(customer);

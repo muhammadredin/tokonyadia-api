@@ -16,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface StoreService {
-    StoreResponse createStore(StoreRequest request, MultipartFile image);
+    StoreResponse createStore(StoreRequest request, List<MultipartFile> image);
 
     StoreResponse getStoreById(String id);
 
@@ -26,16 +26,13 @@ public interface StoreService {
 
     StoreResponse updateStore(String id, StoreRequest request);
 
-    @Transactional(rollbackFor = Exception.class)
-    StoreResponse updateStoreImage(MultipartFile image);
+    StoreResponse updateStoreImage(String id, List<MultipartFile> image);
 
-    @Transactional(rollbackFor = Exception.class)
-    StoreResponse deleteStoreImage();
+    StoreResponse deleteStoreImage(String id);
 
     void deleteStore(String id);
 
     List<StoreOrderResponse> getAllStoreOrders(String storeId);
 
-    @Transactional(rollbackFor = Exception.class)
     void processOrder(String orderId);
 }

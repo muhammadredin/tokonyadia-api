@@ -103,17 +103,12 @@ public class CustomerController {
             @RequestParam String customer,
             @RequestParam(name = "image") List<MultipartFile> image
     ) {
-        try {
-            if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
-            CustomerRequest customerRequest = objectMapper.readValue(customer, CustomerRequest.class);
-            return ResponseUtil.buildResponse(
-                    HttpStatus.CREATED,
-                    CustomerResponseMessage.CUSTOMER_CREATE_SUCCESS,
-                    customerService.createCustomer(customerRequest, image.get(0))
-            );
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
+        CustomerRequest customerRequest = customerRequestMap(customer);
+        return ResponseUtil.buildResponse(
+                HttpStatus.CREATED,
+                CustomerResponseMessage.CUSTOMER_CREATE_SUCCESS,
+                customerService.createCustomer(customerRequest, image)
+        );
     }
 
     @Operation(summary = "Update customer details",
@@ -153,12 +148,10 @@ public class CustomerController {
             @PathVariable String id,
             @RequestParam List<MultipartFile> image
     ) {
-        if (Objects.requireNonNull(image.get(0).getOriginalFilename()).isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image should not be empty");
-        if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 CustomerResponseMessage.CUSTOMER_UPDATE_SUCCESS,
-                customerService.updateCustomerImage(image.get(0))
+                customerService.updateCustomerImage(image)
         );
     }
 
@@ -202,5 +195,13 @@ public class CustomerController {
                 CustomerResponseMessage.CUSTOMER_DELETE_SUCCESS,
                 null
         );
+    }
+
+    private CustomerRequest customerRequestMap(String request) {
+        try {
+            return objectMapper.readValue(request, CustomerRequest.class);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 }

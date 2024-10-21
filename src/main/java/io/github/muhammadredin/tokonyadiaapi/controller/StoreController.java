@@ -69,18 +69,12 @@ public class StoreController {
             @RequestParam String store,
             @RequestParam List<MultipartFile> image
     ) {
-        if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
-        try {
-            StoreRequest storeRequest = objectMapper.readValue(store, StoreRequest.class);
-            return ResponseUtil.buildResponse(
-                    HttpStatus.CREATED,
-                    StoreResponseMessage.STORE_CREATE_SUCCESS,
-                    storeService.createStore(storeRequest, image.get(0))
-            );
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
-
+        StoreRequest storeRequest = storeRequestMap(store);
+        return ResponseUtil.buildResponse(
+                HttpStatus.CREATED,
+                StoreResponseMessage.STORE_CREATE_SUCCESS,
+                storeService.createStore(storeRequest, image)
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.storeServiceEval(#id)")
@@ -102,12 +96,10 @@ public class StoreController {
             @PathVariable String id,
             @RequestParam List<MultipartFile> image
     ) {
-        if (Objects.requireNonNull(image.get(0).getOriginalFilename()).isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image should not be empty");
-        if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 CustomerResponseMessage.CUSTOMER_UPDATE_SUCCESS,
-                storeService.updateStoreImage(image.get(0))
+                storeService.updateStoreImage(id, image)
         );
     }
 
@@ -119,7 +111,7 @@ public class StoreController {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 CustomerResponseMessage.CUSTOMER_UPDATE_SUCCESS,
-                storeService.deleteStoreImage()
+                storeService.deleteStoreImage(id)
         );
     }
 
@@ -173,5 +165,13 @@ public class StoreController {
                 StoreResponseMessage.ORDER_PROCESS_SUCCESS,
                 null
         );
+    }
+
+    private StoreRequest storeRequestMap(String request) {
+        try {
+            return objectMapper.readValue(request, StoreRequest.class);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 }
