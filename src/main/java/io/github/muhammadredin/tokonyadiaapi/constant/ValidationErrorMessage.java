@@ -17,6 +17,7 @@ public class ValidationErrorMessage {
     public static final String PRICE_EMPTY_ERROR = "Price should not be empty";
     public static final String STOCK_EMPTY_ERROR = "Stock should not be empty";
     public static final String STORE_ID_EMPTY_ERROR = "Store ID should not be empty";
+    public static final String TOKEN_EMPTY_ERROR = "Token should not be empty";
 
     public static final String USERNAME_LENGTH_ERROR = "Username should have minimum 3 characters and maximum 20 characters";
     public static final String STORE_NAME_LENGTH_ERROR = "Store name should have minimum 3 characters and maximum 20 characters";
@@ -28,4 +29,5 @@ public class ValidationErrorMessage {
     public static final String STOCK_VALUE_ERROR = "Stock should be not a negative value";
 
     public static final String PHONE_NUMBER_NOT_VALID_ERROR = "Phone number not valid";
+    public static final String EMAIL_NOT_VALID_ERROR = "Email not valid";
 }

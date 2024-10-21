@@ -21,7 +21,8 @@ public class UserAccountRequest {
     @Size(min = 8, message = ValidationErrorMessage.PASSWORD_LENGTH_ERROR)
     private String password;
 
-    @Email(message = ValidationErrorMessage.EMAIL_EMPTY_ERROR)
+    @NotBlank(message = ValidationErrorMessage.EMAIL_EMPTY_ERROR)
+    @Email(message = ValidationErrorMessage.EMAIL_NOT_VALID_ERROR)
     private String email;
 
     @NotBlank(message = ValidationErrorMessage.PHONE_NUMBER_EMPTY_ERROR)

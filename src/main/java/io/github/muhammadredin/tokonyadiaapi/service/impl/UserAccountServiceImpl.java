@@ -2,9 +2,13 @@ package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.UserRole;
 import io.github.muhammadredin.tokonyadiaapi.constant.ValidationErrorMessage;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.ForgotPasswordRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.PasswordResetRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.UserAccountRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.ForgotPasswordResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.UserAccountRepository;
+import io.github.muhammadredin.tokonyadiaapi.service.PasswordResetTokenService;
 import io.github.muhammadredin.tokonyadiaapi.service.UserAccountService;
 import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,8 @@ import java.util.Optional;
 @Slf4j
 public class UserAccountServiceImpl implements UserAccountService {
     private final UserAccountRepository userAccountRepository;
+    private final PasswordResetTokenService passwordResetTokenService;
+    private final EmailServiceImpl emailService;
     private final PasswordEncoder passwordEncoder;
     private final ValidationUtil validationUtil;
 
@@ -77,6 +83,48 @@ public class UserAccountServiceImpl implements UserAccountService {
 
         log.error("User not found for credential: {}", credential);
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bad Credentials");
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public UserAccount getOneByEmail(String email) {
+        log.info("Fetched user account details for email: {}", email);
+        return userAccountRepository.findByEmail(email)
+                .orElse(null);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public ForgotPasswordResponse createPasswordResetRequest(ForgotPasswordRequest request) {
+        UserAccount userAccount = getOneByEmail(request.getEmail());
+
+        if (userAccount != null) {
+            String token = passwordResetTokenService.generatePasswordResetToken(userAccount.getId());
+            String url = "localhost:8081/api/user/reset-password?token=" + token;
+
+            // TODO: Gunakan java mail ketika sudah di production
+//            emailService.sendPasswordResetEmail(userAccount.getEmail(), url);
+
+            // TODO: Jangan gunakan ForgotPasswordResponse di production, return harus diubah void
+            return ForgotPasswordResponse.builder()
+                    .passwordResetToken(token)
+                    .build();
+        }
+        return null;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void passwordReset(PasswordResetRequest request) {
+        String userId = passwordResetTokenService.getUserIdByPasswordResetToken(request.getToken());
+        if (!passwordResetTokenService.isPasswordResetTokenValid(userId, request.getToken()))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Password Reset Token");
+
+        UserAccount userAccount = getOne(userId);
+        userAccount.setPassword(passwordEncoder.encode(request.getPassword()));
+        userAccountRepository.save(userAccount);
+
+        passwordResetTokenService.deletePasswordResetToken(userId);
     }
 
     private List<String> checkUserAccount(UserAccount userAccount) {

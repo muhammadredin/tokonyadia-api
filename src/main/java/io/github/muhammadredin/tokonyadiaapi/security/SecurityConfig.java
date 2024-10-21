@@ -37,8 +37,8 @@ public class SecurityConfig {
                 .authorizeRequests(request -> request.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll() // Allow access to error dispatch
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow CORS preflight requests
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/user/**").permitAll() // Allow registration endpoint
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll() // Allow login endpoint
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll() // Allow registration endpoint
                         .requestMatchers(HttpMethod.POST, "/api/auth/refresh-token").permitAll() // Allow refresh token endpoint
                         .requestMatchers(HttpMethod.POST, "/api/payments/notification")
                         .access("hasIpAddress('34.101.68.130') or hasIpAddress('34.101.92.69') or hasIpAddress('127.0.0.1') or hasIpAddress('0:0:0:0:0:0:0:1')") // IP whitelisting for payment notifications

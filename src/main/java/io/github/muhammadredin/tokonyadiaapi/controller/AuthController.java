@@ -34,10 +34,8 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "APIs for user authentication, token refresh, and logout")
 public class AuthController {
-
     private static class CommonResponseAuthResponse extends CommonResponse<LoginResponse> {}
 
-    private final UserAccountService userAccountService;
     private final AuthService authService;
 
     @Operation(summary = "User login",
@@ -66,18 +64,6 @@ public class AuthController {
         LoginResponse loginResponse = authService.refreshToken(refreshToken);
         setCookie(response, loginResponse.getRefreshToken());
         return ResponseUtil.buildResponse(HttpStatus.OK, UserResponseMessage.USER_LOGIN_SUCCESS, loginResponse);
-    }
-
-    @Operation(summary = "Register",
-            description = "Register new user",
-            responses = {
-                    @ApiResponse(responseCode = "201", description = "Register successful"),
-                    @ApiResponse(responseCode = "404", description = "Bad Request", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
-            })
-    @PostMapping("/register")
-    public ResponseEntity<?> registerHandler(@Valid @RequestBody UserAccountRequest request) {
-        userAccountService.createUserAccount(request);
-        return ResponseUtil.buildResponse(HttpStatus.CREATED, UserResponseMessage.USER_REGISTER_SUCCESS, null);
     }
 
     @Operation(summary = "Logout",
