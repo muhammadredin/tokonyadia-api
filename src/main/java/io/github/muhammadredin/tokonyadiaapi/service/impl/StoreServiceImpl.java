@@ -29,6 +29,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j // Enable logging for this class
 @Service
@@ -52,9 +53,15 @@ public class StoreServiceImpl implements StoreService {
         }
 
         Store store = storeRepository.save(toStore(request));
-        StoreImage storeImage = storeImageService.saveImage(image, store);
-        store.setStoreImage(storeImage);
-        log.info("Store created successfully: {}", store);
+        log.info("Store created successfully with ID: {}", store.getId());
+
+        if (!Objects.requireNonNull(image.getOriginalFilename()).isEmpty()) {
+            StoreImage storeImage = storeImageService.saveImage(image, store);
+            store.setStoreImage(storeImage);
+
+            log.info("Store image saved for customer ID: {}", storeImage.getId());
+        }
+
         return toStoreResponse(store);
     }
 

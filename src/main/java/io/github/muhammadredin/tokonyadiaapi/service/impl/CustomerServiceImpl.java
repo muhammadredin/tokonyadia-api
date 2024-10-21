@@ -32,6 +32,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -54,13 +55,16 @@ public class CustomerServiceImpl implements CustomerService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
         }
 
+
         Customer customer = customerRepository.saveAndFlush(toCustomer(request));
         log.info("Customer created successfully with ID: {}", customer.getId());
 
-        CustomerImage customerImage = customerImageService.saveImage(image, customer);
-        customer.setCustomerImage(customerImage);
+        if (!Objects.requireNonNull(image.getOriginalFilename()).isEmpty()) {
+            CustomerImage customerImage = customerImageService.saveImage(image, customer);
+            customer.setCustomerImage(customerImage);
 
-        log.info("Customer image saved for customer ID: {}", customer.getId());
+            log.info("Customer image saved for customer ID: {}", customer.getId());
+        }
 
         return toCustomerResponse(customer);
     }
