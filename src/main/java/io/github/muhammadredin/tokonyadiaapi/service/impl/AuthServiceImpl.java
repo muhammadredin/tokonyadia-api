@@ -34,15 +34,21 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse login(LoginRequest request) {
         validationUtil.validate(request);
         try {
-            log.info("Login request: {}", request);
+            log.info("Attempting login for credential: {}", request.getCredential());
             Authentication authentication = authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(request.getCredential(), request.getPassword()));
-            log.info("Authentication success: {}", authentication);
-            if (!authentication.isAuthenticated()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, UserResponseMessage.USER_LOGIN_ERROR);
+
+            log.info("Authentication successful for user: {}", authentication.getName());
+            if (!authentication.isAuthenticated()) {
+                log.warn("Authentication failed for credential: {}", request.getCredential());
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, UserResponseMessage.USER_LOGIN_ERROR);
+            }
 
             UserAccount userAccount = (UserAccount) authentication.getPrincipal();
             String accessToken = jwtService.generateToken(userAccount);
             String refreshToken = refreshTokenService.generateRefreshToken(userAccount.getId());
+
+            log.info("Access token and refresh token generated for user: {}", userAccount.getUsername());
 
             Optional<Customer> customer = Optional.ofNullable(userAccount.getCustomer());
             Optional<Store> store = Optional.ofNullable(userAccount.getStore());
@@ -55,45 +61,65 @@ public class AuthServiceImpl implements AuthService {
                     .storeId(store.map(Store::getId).orElse(null))
                     .build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Error during login process for credential: {}. Error message: {}", request.getCredential(), e.getMessage(), e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
     @Override
     public LoginResponse refreshToken(String refreshToken) {
-        log.info("Refresh Token: {}", refreshToken);
-        String userId = refreshTokenService.getUserIdByRefreshToken(refreshToken);
-        log.info("Refresh User Id: {}", userId);
-        String newRefreshToken = refreshTokenService.rotateRefreshToken(userId);
+        log.info("Refreshing token: {}", refreshToken);
+        try {
+            String userId = refreshTokenService.getUserIdByRefreshToken(refreshToken);
+            log.info("User ID associated with refresh token: {}", userId);
 
-        UserAccount userAccount = userAccountService.getOne(userId);
-        String accessToken = jwtService.generateToken(userAccount);
+            String newRefreshToken = refreshTokenService.rotateRefreshToken(userId);
+            UserAccount userAccount = userAccountService.getOne(userId);
+            String accessToken = jwtService.generateToken(userAccount);
 
-        Optional<Customer> customer = Optional.ofNullable(userAccount.getCustomer());
-        Optional<Store> store = Optional.ofNullable(userAccount.getStore());
+            log.info("New access token generated for user: {}", userAccount.getUsername());
 
-        return LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(newRefreshToken)
-                .role(userAccount.getRole().name())
-                .customerId(customer.map(Customer::getId).orElse(null))
-                .storeId(store.map(Store::getId).orElse(null))
-                .build();
+            Optional<Customer> customer = Optional.ofNullable(userAccount.getCustomer());
+            Optional<Store> store = Optional.ofNullable(userAccount.getStore());
+
+            return LoginResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(newRefreshToken)
+                    .role(userAccount.getRole().name())
+                    .customerId(customer.map(Customer::getId).orElse(null))
+                    .storeId(store.map(Store::getId).orElse(null))
+                    .build();
+        } catch (Exception e) {
+            log.error("Error during token refresh for refreshToken: {}. Error message: {}", refreshToken, e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 
     @Override
     public void logout(String bearerToken) {
-        if (bearerToken == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        refreshTokenService.deleteRefreshToken(userAccount.getId());
-        jwtService.blacklistToken(bearerToken);
+        log.info("Logging out user with bearer token: {}", bearerToken);
+        if (bearerToken == null) {
+            log.warn("Bearer token is null during logout attempt");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        try {
+            UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            refreshTokenService.deleteRefreshToken(userAccount.getId());
+            jwtService.blacklistToken(bearerToken);
+            log.info("Logout successful for user: {}", userAccount.getUsername());
+        } catch (Exception e) {
+            log.error("Error during logout process. Error message: {}", e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 
     @Override
     public UserAccount getAuthentication() {
+        log.info("Retrieving authentication for the current user");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserAccount account = (UserAccount) authentication.getPrincipal();
+        log.info("Current authenticated user: {}", account.getUsername());
         return userAccountService.getOne(account.getId());
     }
 }

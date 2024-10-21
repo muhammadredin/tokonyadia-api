@@ -8,6 +8,7 @@ import io.github.muhammadredin.tokonyadiaapi.repository.StoreImageRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.FileStorageService;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreImageService;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -24,6 +25,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermissions;
 
 @Service
+@Slf4j  // Enable SLF4J logging for this class
 public class StoreImageServiceImpl implements StoreImageService {
     private final StoreImageRepository storeImageRepository;
     private final FileStorageService fileStorageService;
@@ -48,9 +50,12 @@ public class StoreImageServiceImpl implements StoreImageService {
         Path path = ROOT_PATH.resolve(IMAGE_PATH.toString().substring(1));
         if (!Files.exists(path)) {
             try {
+                // Create the directory for storing images if it doesn't exist
                 Files.createDirectories(path);
                 Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rwxr-xr-x"));
+                log.info("Initialized image storage directory: {}", path);
             } catch (IOException e) {
+                log.error("Failed to create image storage directory: {}", e.getMessage());
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
             }
         }
@@ -63,6 +68,7 @@ public class StoreImageServiceImpl implements StoreImageService {
 
         Resource resource = fileStorageService.downloadFile(storeImage.getFilePath());
 
+        log.info("Successfully retrieved image for ID: {}", id);
         return FileDownloadResponse.builder()
                 .resource(resource)
                 .contentType(storeImage.getContentType())
@@ -72,6 +78,7 @@ public class StoreImageServiceImpl implements StoreImageService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public StoreImage saveImage(MultipartFile request, Store store) {
+        log.info("Saving image for store ID: {}", store.getId());
         FileInfo fileInfo = fileStorageService.storeImage(request, IMAGE_PATH);
 
         StoreImage image = StoreImage.builder()
@@ -82,26 +89,37 @@ public class StoreImageServiceImpl implements StoreImageService {
                 .filePath(fileInfo.getFilePath())
                 .build();
 
-        return storeImageRepository.saveAndFlush(image);
+        StoreImage savedImage = storeImageRepository.saveAndFlush(image);
+        log.info("Successfully saved image with ID: {}", savedImage.getId());
+        return savedImage;
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteImage(StoreImage image) {
+        log.info("Deleting image with ID: {}", image.getId());
         fileStorageService.deleteFile(image.getFilePath());
         storeImageRepository.delete(image);
         storeImageRepository.flush();
+        log.info("Successfully deleted image with ID: {}", image.getId());
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public StoreImage updateImage(MultipartFile request, Store store) {
-        if (store.getStoreImage() != null) deleteImage(store.getStoreImage());
+        log.info("Updating image for store ID: {}", store.getId());
+        if (store.getStoreImage() != null) {
+            deleteImage(store.getStoreImage());
+        }
         return saveImage(request, store);
     }
 
     private StoreImage getOne(String id) {
+        log.info("Fetching image with ID: {}", id);
         return storeImageRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found"));
+                .orElseThrow(() -> {
+                    log.warn("Image not found for ID: {}", id);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found");
+                });
     }
 }

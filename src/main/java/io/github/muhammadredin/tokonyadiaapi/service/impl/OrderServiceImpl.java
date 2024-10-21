@@ -32,16 +32,21 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Order createOrder(Order request) {
-        return orderRepository.saveAndFlush(request);
+        log.info("Creating order with details: {}", request);
+        Order savedOrder = orderRepository.saveAndFlush(request);
+        log.info("Order created successfully with ID: {}", savedOrder.getId());
+        return savedOrder;
     }
 
     @Transactional(readOnly = true)
     @Override
     public OrderDetailResponse getCustomerOrderById(String orderId) {
+        log.info("Fetching order details for order ID: {}", orderId);
         Order order = getOne(orderId);
 
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!order.getInvoice().getCustomer().getId().equals(userAccount.getCustomer().getId())) {
+            log.warn("Access denied for user {} to order ID: {}", userAccount.getUsername(), orderId);
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access Denied");
         }
 
@@ -61,6 +66,7 @@ public class OrderServiceImpl implements OrderService {
             productDetails.add(productOrderResponse);
         }
 
+        log.info("Order details fetched successfully for order ID: {}", orderId);
         return OrderDetailResponse.builder()
                 .orderId(orderId)
                 .orderDate(order.getOrderDate())
@@ -75,31 +81,41 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Override
     public Order getOne(String orderId) {
+        log.info("Retrieving order with ID: {}", orderId);
         return orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found"));
+                .orElseThrow(() -> {
+                    log.error("Order not found for ID: {}", orderId);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found");
+                });
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void updateOrderStatus(Order order) {
+        log.info("Updating order status for order ID: {}", order.getId());
         orderRepository.save(order);
+        log.info("Order status updated successfully for order ID: {}", order.getId());
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<Order> getOrdersBySpecification(Specification<Order> specification) {
+        log.info("Fetching orders with specified criteria");
         return orderRepository.findAll(specification);
     }
 
     @Transactional(readOnly = true)
     @Override
     public StoreOrderDetailResponse getOrderDetailByStoreId(String orderId) {
+        log.info("Fetching order details for store ID with order ID: {}", orderId);
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Store store = userAccount.getStore();
         Order order = getOne(orderId);
 
-        if (!order.getOrderDetails().get(0).getProduct().getStore().getId().equals(store.getId()))
+        if (!order.getOrderDetails().get(0).getProduct().getStore().getId().equals(store.getId())) {
+            log.warn("Order not found for store ID: {}", store.getId());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, OrderResponseMessage.ERROR_ORDER_NOT_FOUND);
+        }
 
         List<ProductOrderResponse> productDetails = new ArrayList<>();
         int totalPrice = 0;
@@ -117,6 +133,7 @@ public class OrderServiceImpl implements OrderService {
             productDetails.add(productOrderResponse);
         }
 
+        log.info("Order details fetched successfully for order ID: {}", orderId);
         return StoreOrderDetailResponse.builder()
                 .customerId(order.getInvoice().getCustomer().getId())
                 .customerName(order.getInvoice().getCustomer().getName())

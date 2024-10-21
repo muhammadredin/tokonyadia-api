@@ -25,13 +25,16 @@ import java.util.List;
 public class FileStorageServiceImpl implements FileStorageService {
     private final Integer MAX_SIZE;
     private final Path ROOT_PATH;
+    private final List<String> allowedImageTypes;
 
     public FileStorageServiceImpl(
             @Value("${tokonyadia.file-size}") Integer maxSize,
-            @Value("${tokonyadia.root-file-path}") String rootPath
+            @Value("${tokonyadia.root-file-path}") String rootPath,
+            @Value("${tokonyadia.allowed-image-types}") List<String> allowedImageTypes
     ) {
         this.MAX_SIZE = maxSize;
         this.ROOT_PATH = Paths.get(rootPath).normalize();
+        this.allowedImageTypes = allowedImageTypes;
     }
 
     @PostConstruct
@@ -41,7 +44,8 @@ public class FileStorageServiceImpl implements FileStorageService {
                 Files.createDirectories(ROOT_PATH);
                 Files.setPosixFilePermissions(ROOT_PATH, PosixFilePermissions.fromString("rwxr-xr-x"));
             } catch (IOException e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error while init directory");
+                log.error("Error initializing directory", e);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error initializing directory");
             }
         }
     }
@@ -50,37 +54,35 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     public FileInfo storeImage(MultipartFile image, Path path) {
         try {
-            if (image == null || image.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-            if (image.getSize() > MAX_SIZE) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-            if (image.getOriginalFilename() == null || image.getOriginalFilename().isEmpty())
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-            if (!List.of("image/jpg", "image/jpeg", "image/png", "image/webp").contains(image.getContentType()))
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            validateImage(image);
 
-            String originalFilename = image.getOriginalFilename();
-            if (!(originalFilename.endsWith(".jpg") ||
-                    originalFilename.endsWith(".jpeg") ||
-                    originalFilename.endsWith(".png") ||
-                    originalFilename.endsWith(".webp"))
-            ) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-            }
-
-            String fileName = System.currentTimeMillis() + "_" + originalFilename;
-            Path imagePath = ROOT_PATH.resolve(path.toString().substring(1));
+            String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
+            Path imagePath = ROOT_PATH.resolve(path.normalize());
             Path filePath = imagePath.resolve(fileName);
 
-            log.info("SAVING IMAGES");
+            log.info("Saving image at: {}", filePath);
             Files.copy(image.getInputStream(), filePath);
             Files.setPosixFilePermissions(filePath, PosixFilePermissions.fromString("rw-r--r--"));
-            log.info("IMAGE STORED");
 
             return FileInfo.builder()
                     .fileName(fileName)
                     .filePath(path + "/" + fileName)
                     .build();
         } catch (IOException e) {
+            log.error("Error while saving image", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    private void validateImage(MultipartFile image) {
+        if (image == null || image.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty or null");
+        }
+        if (image.getSize() > MAX_SIZE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File size exceeds the allowed limit");
+        }
+        if (!allowedImageTypes.contains(image.getContentType())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported file type");
         }
     }
 
@@ -88,11 +90,14 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     public Resource downloadFile(String path) {
         try {
-            Path filePath = ROOT_PATH.resolve(path.substring(1));
-            log.info(filePath.toString());
-            if (!Files.exists(filePath)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "file not found");
+            Path filePath = ROOT_PATH.resolve(path.substring(1)).normalize();
+            log.info("Loading file at: {}", filePath);
+            if (!Files.exists(filePath)) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found");
+            }
             return new UrlResource(filePath.toUri());
         } catch (IOException e) {
+            log.error("Error loading file", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -101,10 +106,13 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     public void deleteFile(String path) {
         try {
-            Path filePath = ROOT_PATH.resolve(path.substring(1));
-            if (!Files.exists(filePath)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "file not found");
+            Path filePath = ROOT_PATH.resolve(path.substring(1)).normalize();
+            if (!Files.exists(filePath)) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found");
+            }
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
+            log.error("Error deleting file", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }

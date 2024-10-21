@@ -45,16 +45,23 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public ProductResponse createProduct(ProductRequest request, Store store, List<MultipartFile> images) {
+        log.info("Creating product for store: {}", store.getId());
+
         List<String> errors = checkProduct(store.getId());
 
-        if (!errors.isEmpty()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, errors.toString());
+        if (!errors.isEmpty()) {
+            log.error("Errors occurred while checking product permissions: {}", errors);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, errors.toString());
+        }
 
         Product savedProduct = toProduct(request, store);
         savedProduct = productRepository.saveAndFlush(savedProduct);
+        log.info("Product created with ID: {}", savedProduct.getId());
 
         if (images != null && !images.isEmpty()) {
             List<ProductImage> productImages = productImageService.saveImageBulk(images, savedProduct);
             savedProduct.setProductImages(productImages);
+            log.info("Images saved for product ID: {}", savedProduct.getId());
         }
 
         return toProductResponse(savedProduct);
@@ -63,6 +70,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     @Override
     public Product getOne(String id) {
+        log.info("Fetching product by ID: {}", id);
         return productRepository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, ProductResponseMessage.PRODUCT_NOT_FOUND)
         );
@@ -71,6 +79,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     @Override
     public ProductResponse getProductById(String id) {
+        log.info("Getting product response for ID: {}", id);
         Product product = getOne(id);
         return toProductResponse(product);
     }
@@ -78,8 +87,8 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     @Override
     public Page<ProductResponse> searchProduct(SearchProductRequest request) {
+        log.info("Searching products with request: {}", request);
         Sort sortBy = SortUtil.getSort(request.getSort());
-
         Specification<Product> specification = ProductSpecification.product(request);
         Page<Product> productPage = productRepository.findAll(specification, PagingUtil.getPageable(request, sortBy));
         return productPage.map(this::toProductResponse);
@@ -88,6 +97,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public ProductResponse updateProduct(String id, ProductRequest request) {
+        log.info("Updating product ID: {}", id);
         validationUtil.validate(request);
         Product product = getOne(id);
         product.setName(request.getName());
@@ -95,51 +105,63 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(request.getDescription());
         product.setStock(request.getStock());
 
-        return toProductResponse(productRepository.save(product));
+        Product updatedProduct = productRepository.save(product);
+        log.info("Product updated: {}", updatedProduct.getId());
+        return toProductResponse(updatedProduct);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public ProductResponse addProductImage(String productId, List<MultipartFile> images) {
+        log.info("Adding images to product ID: {}", productId);
         Product product = getOne(productId);
-
         List<ProductImage> productImages = productImageService.saveImageBulk(images, product);
-        for (ProductImage productImage : productImages) {
-            product.getProductImages().add(productImage);
-        }
 
-        return toProductResponse(productRepository.saveAndFlush(product));
+        product.getProductImages().addAll(productImages);
+        Product updatedProduct = productRepository.saveAndFlush(product);
+        log.info("Images added to product ID: {}", updatedProduct.getId());
+
+        return toProductResponse(updatedProduct);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public ProductResponse deleteProductImage(String productId, String imageId) {
+        log.info("Deleting image ID: {} from product ID: {}", imageId, productId);
         ProductImage productImage = productImageService.getOne(imageId);
         Product product = getOne(productId);
 
-        if (!Objects.equals(product.getId(), productImage.getProduct().getId()))
+        if (!Objects.equals(product.getId(), productImage.getProduct().getId())) {
+            log.error("Image not found for product ID: {} and image ID: {}", productId, imageId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found");
+        }
 
-        List<ProductImage> productImages = product.getProductImages();
-        productImages.remove(productImage);
-        product.setProductImages(productImages);
+        product.getProductImages().remove(productImage);
+        Product updatedProduct = productRepository.saveAndFlush(product);
+        log.info("Image ID: {} deleted from product ID: {}", imageId, updatedProduct.getId());
 
-        return toProductResponse(productRepository.saveAndFlush(product));
+        return toProductResponse(updatedProduct);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteProduct(String id) {
+        log.info("Deleting product ID: {}", id);
         Product product = getOne(id);
         List<ProductImage> productImages = product.getProductImages();
+
         for (ProductImage productImage : productImages) {
             ProductImage image = productImageService.getOne(productImage.getId());
             productImageService.deleteImage(image.getId());
+            log.info("Deleted image ID: {}", image.getId());
         }
+
         productRepository.delete(product);
+        log.info("Product ID: {} deleted successfully", id);
     }
 
     private List<String> checkProduct(String storeId) {
+        log.info("Checking product permissions for store ID: {}", storeId);
         List<String> errors = new ArrayList<>();
         UserAccount authentication = authService.getAuthentication();
 
@@ -155,6 +177,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductResponse toProductResponse(Product product) {
+        log.debug("Converting product to response for ID: {}", product.getId());
         List<FileResponse> images = product.getProductImages() != null ?
                 product.getProductImages().stream()
                         .map(image -> FileResponse.builder()
@@ -176,6 +199,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private Product toProduct(ProductRequest product, Store store) {
+        log.debug("Converting ProductRequest to Product for store ID: {}", store.getId());
         return Product.builder()
                 .name(product.getName())
                 .description(product.getDescription())

@@ -1,16 +1,13 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
-import io.github.muhammadredin.tokonyadiaapi.constant.UserResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.constant.UserRole;
 import io.github.muhammadredin.tokonyadiaapi.constant.ValidationErrorMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.UserAccountRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.response.UserResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.UserAccountRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.UserAccountService;
 import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,22 +32,37 @@ public class UserAccountServiceImpl implements UserAccountService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void createUserAccount(UserAccountRequest request) {
+        // Validate the incoming user account request
         validationUtil.validate(request);
+
+        // Convert DTO to UserAccount entity
         UserAccount userAccount = toUserAccount(request);
+
+        // Check for existing user accounts with the same username, email, or phone number
         List<String> errors = checkUserAccount(userAccount);
-        if (!errors.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
+        if (!errors.isEmpty()) {
+            log.error("User account creation failed: {}", errors);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
+        }
+
+        // Save the new user account to the repository
         userAccountRepository.save(userAccount);
+        log.info("User account created successfully for username: {}", userAccount.getUsername());
     }
 
     @Transactional(readOnly = true)
     @Override
     public UserAccount getOne(String id) {
-        return (UserAccount) loadUserByUsername(id);
+        // Load user by username or ID
+        UserAccount userAccount = (UserAccount) loadUserByUsername(id);
+        log.info("Fetched user account details for ID: {}", id);
+        return userAccount;
     }
 
     @Transactional(readOnly = true)
     @Override
     public UserDetails loadUserByUsername(String credential) throws UsernameNotFoundException {
+        // Attempt to find user by username, email, phone number, or ID
         Optional<UserAccount> userAccount = userAccountRepository.findByUsername(credential);
         if (userAccount.isPresent()) return userAccount.get();
 
@@ -63,21 +75,29 @@ public class UserAccountServiceImpl implements UserAccountService {
         userAccount = userAccountRepository.findById(credential);
         if (userAccount.isPresent()) return userAccount.get();
 
-
+        log.error("User not found for credential: {}", credential);
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bad Credentials");
     }
 
-    private List<String> checkUserAccount (UserAccount userAccount) {
+    private List<String> checkUserAccount(UserAccount userAccount) {
         List<String> errors = new ArrayList<>();
 
-        if (userAccountRepository.findByUsername(userAccount.getUsername()).isPresent()) errors.add(ValidationErrorMessage.USERNAME_EXIST);
-        if (userAccountRepository.findByEmail(userAccount.getEmail()).isPresent()) errors.add(ValidationErrorMessage.EMAIL_EXIST);
-        if (userAccountRepository.findByPhoneNumber(userAccount.getPhoneNumber()).isPresent()) errors.add(ValidationErrorMessage.PHONE_NUMBER_EXIST);
+        // Validate if username, email, or phone number already exists
+        if (userAccountRepository.findByUsername(userAccount.getUsername()).isPresent()) {
+            errors.add(ValidationErrorMessage.USERNAME_EXIST);
+        }
+        if (userAccountRepository.findByEmail(userAccount.getEmail()).isPresent()) {
+            errors.add(ValidationErrorMessage.EMAIL_EXIST);
+        }
+        if (userAccountRepository.findByPhoneNumber(userAccount.getPhoneNumber()).isPresent()) {
+            errors.add(ValidationErrorMessage.PHONE_NUMBER_EXIST);
+        }
 
         return errors;
     }
 
     private UserAccount toUserAccount(UserAccountRequest userAccountRequest) {
+        // Convert DTO to UserAccount entity
         return UserAccount.builder()
                 .username(userAccountRequest.getUsername())
                 .email(userAccountRequest.getEmail())

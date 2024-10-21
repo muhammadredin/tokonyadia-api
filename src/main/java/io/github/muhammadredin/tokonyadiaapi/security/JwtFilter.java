@@ -32,39 +32,43 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String token = parseToken(bearerToken);
+        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION); // Extract Bearer token from request header
+        String token = parseToken(bearerToken); // Parse the token from the Bearer string
 
-        // TODO: cek cookie apakah user memiliki refresh token dan buat isRefreshTokenValid untuk memverifikasi
-        // refresh token yang dibawa adalah refresh token dari access token yang dibawa
+        // Refresh token should be verified against the access token provided
 
         try {
-            if (token != null && jwtService.validateToken(token)) {
-                if (redisService.get("blacklistToken:" + token) != null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+            if (token != null && jwtService.validateToken(token)) { // Validate the token
+                if (redisService.get("blacklistToken:" + token) != null) {
+                    log.warn("Invalid token: {}", token); // Log warning if token is blacklisted
+                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+                }
 
-                String userId = jwtService.getUserId(token);
-                UserAccount userAccount = userAccountService.getOne(userId);
+                String userId = jwtService.getUserId(token); // Extract user ID from the token
+                UserAccount userAccount = userAccountService.getOne(userId); // Retrieve user account using the user ID
 
+                // Create an authentication object
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userAccount,
                         null,
                         userAccount.getAuthorities());
 
+                // Set request details for the authentication object
                 authentication.setDetails(new WebAuthenticationDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                SecurityContextHolder.getContext().setAuthentication(authentication); // Set the authentication in the security context
+                log.info("User authentication set for user: {}", userAccount.getUsername()); // Log successful authentication
             }
         } catch (Exception e) {
-            log.error("Cannot set user authentication: {}", e.getMessage());
+            log.error("Cannot set user authentication: {}", e.getMessage()); // Log any exceptions that occur
         } finally {
-            filterChain.doFilter(request, response);
+            filterChain.doFilter(request, response); // Continue the filter chain
         }
-
     }
 
     private String parseToken(String bearer) {
         if (bearer != null && bearer.startsWith("Bearer ")) {
-            return bearer.substring(7);
+            return bearer.substring(7); // Return the token part of the Bearer string
         }
-        return null;
+        return null; // Return null if the token is not present
     }
 }

@@ -13,6 +13,7 @@ import io.github.muhammadredin.tokonyadiaapi.service.InvoiceService;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,8 +26,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class InvoiceServiceImpl implements InvoiceService {
     private final InvoiceRepository invoiceRepository;
@@ -34,12 +35,16 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Invoice createInvoice(Invoice request) {
-        return invoiceRepository.saveAndFlush(request);
+        log.info("Creating new invoice for request: {}", request);
+        Invoice savedInvoice = invoiceRepository.saveAndFlush(request);
+        log.info("Invoice created with ID: {}", savedInvoice.getId());
+        return savedInvoice;
     }
 
     @Transactional(readOnly = true)
     @Override
     public Page<InvoiceResponse> getAllCustomerInvoice(PagingAndSortingRequest request) {
+        log.info("Fetching all invoices for the current customer");
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Customer customer = userAccount.getCustomer();
 
@@ -47,25 +52,27 @@ public class InvoiceServiceImpl implements InvoiceService {
         if (request.getSort() != null) {
             sortBy = SortUtil.getSort(request.getSort());
         }
-
         Pageable pageable = PagingUtil.getPageable(request, sortBy);
 
-        return invoiceRepository.getInvoiceByCustomer(customer, pageable).map(this::toInvoiceResponse);
+        Page<InvoiceResponse> invoices = invoiceRepository.getInvoiceByCustomer(customer, pageable).map(this::toInvoiceResponse);
+        log.info("Found {} invoices for customer ID: {}", invoices.getTotalElements(), customer.getId());
+        return invoices;
     }
 
     @Transactional(readOnly = true)
     @Override
     public PaymentDetailResponse getCustomerPaymentDetail(String id) {
+        log.info("Fetching payment details for invoice ID: {}", id);
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Customer customer = userAccount.getCustomer();
-
         Invoice invoice = getOne(id);
 
-        if (!invoice.getCustomer().getId().equals(customer.getId()))
+        if (!invoice.getCustomer().getId().equals(customer.getId())) {
+            log.warn("Customer ID mismatch: Invoice ID: {} does not belong to customer ID: {}", id, customer.getId());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, InvoiceResponseMessage.ERROR_CUSTOMER_INVOICE_NOT_FOUND);
+        }
 
         List<PaymentOrderResponse> orderList = new ArrayList<>();
-
         for (Order order : invoice.getOrder()) {
             List<ProductOrderResponse> productOrderList = new ArrayList<>();
             PaymentOrderResponse orderResponse = PaymentOrderResponse.builder()
@@ -85,28 +92,38 @@ public class InvoiceServiceImpl implements InvoiceService {
             orderList.add(orderResponse);
         }
 
-        return PaymentDetailResponse.builder()
+        PaymentDetailResponse paymentDetailResponse = PaymentDetailResponse.builder()
                 .totalPrice(invoice.getGrossAmount())
                 .paymentMethod(invoice.getPaymentType().name())
                 .orders(orderList)
                 .build();
+
+        log.info("Payment details fetched successfully for invoice ID: {}", id);
+        return paymentDetailResponse;
     }
 
     @Transactional(readOnly = true)
     @Override
     public Invoice getOne(String id) {
-        return invoiceRepository.findById(id).orElseThrow();
+        log.info("Retrieving invoice with ID: {}", id);
+        Invoice invoice = invoiceRepository.findById(id).orElseThrow();
+        log.info("Invoice found: {}", invoice);
+        return invoice;
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Invoice setInvoiceStatus(String invoiceId, String transactionStatus) {
+        log.info("Updating status for invoice ID: {} to {}", invoiceId, transactionStatus);
         Invoice invoice = getOne(invoiceId);
         invoice.setTransactionStatus(TransactionStatus.fromDescription(transactionStatus));
-        return invoiceRepository.saveAndFlush(invoice);
+        Invoice updatedInvoice = invoiceRepository.saveAndFlush(invoice);
+        log.info("Invoice ID: {} updated with status: {}", invoiceId, transactionStatus);
+        return updatedInvoice;
     }
 
     public InvoiceResponse toInvoiceResponse(Invoice invoice) {
+        log.debug("Converting invoice to response: {}", invoice.getId());
         return InvoiceResponse.builder()
                 .id(invoice.getId())
                 .expiryDate(invoice.getExpiryTime())

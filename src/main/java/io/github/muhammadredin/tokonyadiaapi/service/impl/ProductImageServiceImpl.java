@@ -8,6 +8,7 @@ import io.github.muhammadredin.tokonyadiaapi.repository.ProductImageRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.FileStorageService;
 import io.github.muhammadredin.tokonyadiaapi.service.ProductImageService;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -25,6 +26,7 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
 
 @Service
+@Slf4j
 public class ProductImageServiceImpl implements ProductImageService {
     private final ProductImageRepository productImageRepository;
     private final FileStorageService fileStorageService;
@@ -44,6 +46,10 @@ public class ProductImageServiceImpl implements ProductImageService {
         this.IMAGE_PATH = Paths.get(IMAGE_PATH);
     }
 
+    /**
+     * Initializes the directory for storing product images.
+     * Creates the directory if it does not exist and sets the appropriate permissions.
+     */
     @PostConstruct
     public void initDirectory() {
         Path path = ROOT_PATH.normalize().resolve(IMAGE_PATH.toString().substring(1));
@@ -52,33 +58,58 @@ public class ProductImageServiceImpl implements ProductImageService {
             try {
                 Files.createDirectories(path);
                 Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rwxr-xr-x"));
+                log.info("Initialized directory at: {}", path);
             } catch (IOException e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error while init directory");
+                log.error("Error while initializing directory: {}", e.getMessage());
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error while initializing directory");
             }
         }
     }
 
+    /**
+     * Saves multiple product images to the database.
+     *
+     * @param images  the list of images to save
+     * @param product the product associated with the images
+     * @return a list of saved ProductImage entities
+     * @throws ResponseStatusException if the number of images exceeds the limit
+     */
     @Transactional(rollbackFor = Exception.class)
     @Override
     public List<ProductImage> saveImageBulk(List<MultipartFile> images, Product product) {
-        if (images.size() > 5 || product.getProductImages() != null && (product.getProductImages().size() + images.size() > 5))
+        if (images.size() > 5 || product.getProductImages() != null && (product.getProductImages().size() + images.size() > 5)) {
+            log.warn("Attempt to upload more than 5 images for product: {}", product.getId());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Maximum product image is 5");
+        }
         return images.stream().map(image -> saveImage(image, product)).toList();
     }
 
+    /**
+     * Retrieves a product image by its ID for downloading.
+     *
+     * @param imageId the ID of the product image
+     * @return a FileDownloadResponse containing the resource and content type
+     * @throws ResponseStatusException if the image is not found
+     */
     @Transactional(readOnly = true)
     @Override
     public FileDownloadResponse getById(String imageId) {
         ProductImage productImage = getOne(imageId);
-
         Resource urlResource = fileStorageService.downloadFile(productImage.getFilePath());
 
+        log.info("Retrieved image for download: {}", imageId);
         return FileDownloadResponse.builder()
                 .resource(urlResource)
                 .contentType(productImage.getContentType())
                 .build();
     }
 
+    /**
+     * Deletes a product image by its ID.
+     *
+     * @param imageId the ID of the product image to delete
+     * @throws ResponseStatusException if the image is not found
+     */
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteImage(String imageId) {
@@ -86,8 +117,16 @@ public class ProductImageServiceImpl implements ProductImageService {
         productImageRepository.delete(productImage);
         productImageRepository.flush();
         fileStorageService.deleteFile(productImage.getFilePath());
+        log.info("Deleted image with ID: {}", imageId);
     }
 
+    /**
+     * Saves a single product image and associates it with the given product.
+     *
+     * @param file    the image file to save
+     * @param product the product associated with the image
+     * @return the saved ProductImage entity
+     */
     @Transactional(rollbackFor = Exception.class)
     @Override
     public ProductImage saveImage(MultipartFile file, Product product) {
@@ -102,13 +141,24 @@ public class ProductImageServiceImpl implements ProductImageService {
                 .build();
 
         productImageRepository.saveAndFlush(productImage);
+        log.info("Saved image for product ID {}: {}", product.getId(), productImage.getFileName());
         return productImage;
     }
 
+    /**
+     * Retrieves a product image by its ID.
+     *
+     * @param imageId the ID of the product image
+     * @return the ProductImage entity
+     * @throws ResponseStatusException if the image is not found
+     */
     @Transactional(readOnly = true)
     @Override
     public ProductImage getOne(String imageId) {
         return productImageRepository.findById(imageId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found"));
+                .orElseThrow(() -> {
+                    log.error("Image not found with ID: {}", imageId);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found");
+                });
     }
 }

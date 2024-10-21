@@ -46,7 +46,8 @@ public class JwtServiceImpl implements JwtService {
             SecretKey secretKey = keyGen.generateKey();
             this.SECRET_KEY = Base64.getEncoder().encodeToString(secretKey.getEncoded());
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            log.error("Error generating secret key for JWT: {}", e.getMessage());
+            throw new RuntimeException("Error generating secret key", e);
         }
     }
 
@@ -54,82 +55,89 @@ public class JwtServiceImpl implements JwtService {
     public String generateToken(UserAccount user) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
-            return JWT.create()
+            String token = JWT.create()
                     .withIssuer(ISSUER)
                     .withSubject(user.getUsername())
                     .withIssuedAt(Instant.now())
                     .withExpiresAt(Instant.now().plus(5, ChronoUnit.MINUTES))
                     .withClaim("role", user.getRole().name())
                     .sign(algorithm);
+            log.info("JWT Token generated for user: {}", user.getUsername());
+            return token;
         } catch (JWTCreationException e) {
-            log.error("Error Generating JWT Token: {}", e.getMessage());
+            log.error("Error generating JWT Token for user {}: {}", user.getUsername(), e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
-
     }
 
     @Override
     public void blacklistToken(String bearerToken) {
         String accessToken = parseToken(bearerToken);
-
         Date expDate = getExpDate(accessToken);
         long timeLeft = expDate.getTime() - System.currentTimeMillis();
 
         redisService.save("blacklistToken:" + accessToken, "BLACKLISTED", Duration.ofMillis(timeLeft));
+        log.info("Token blacklisted successfully: {}", accessToken);
     }
 
     @Override
     public boolean validateToken(String token) {
         log.info("Validating JWT Token: {}", token);
         try {
-            Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
+            Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
             JWTVerifier verifier = JWT.require(algorithm)
                     .withIssuer(ISSUER)
                     .build();
             verifier.verify(token);
+            log.info("JWT Token is valid.");
             return true;
         } catch (JWTVerificationException e) {
-            log.error("Error Validating JWT Token: {}", e.getMessage());
+            log.error("Error validating JWT Token: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, JWTResponseMessage.INVALID_JWT_ERROR);
         }
     }
 
     @Override
     public String getUserId(String token) {
-        log.info("Extracting User ID From JWT Token: {}", token);
+        log.info("Extracting User ID from JWT Token: {}", token);
         try {
-            Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
+            Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
             JWTVerifier verifier = JWT.require(algorithm)
                     .withIssuer(ISSUER)
                     .build();
             DecodedJWT jwt = verifier.verify(token);
+            log.info("User ID extracted from token: {}", jwt.getSubject());
             return jwt.getSubject();
         } catch (JWTVerificationException e) {
-            log.error("Error Extracting User ID From JWT Token: {}", e.getMessage());
+            log.error("Error extracting User ID from JWT Token: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, JWTResponseMessage.INVALID_JWT_ERROR);
         }
     }
 
     @Override
     public Date getExpDate(String token) {
-        log.info("Extracting Expiration Date From JWT Token: {}", token);
+        log.info("Extracting Expiration Date from JWT Token: {}", token);
         try {
-            Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
+            Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
             JWTVerifier verifier = JWT.require(algorithm)
                     .withIssuer(ISSUER)
                     .build();
             DecodedJWT jwt = verifier.verify(token);
+            log.info("Expiration date extracted: {}", jwt.getExpiresAt());
             return jwt.getExpiresAt();
         } catch (JWTVerificationException e) {
-            log.error("Error Extracting User ID From JWT Token: {}", e.getMessage());
+            log.error("Error extracting expiration date from JWT Token: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, JWTResponseMessage.INVALID_JWT_ERROR);
         }
     }
 
     private String parseToken(String bearerToken) {
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+            String token = bearerToken.substring(7);
+            log.info("Parsed token: {}", token);
+            return token;
         }
+        log.warn("Invalid bearer token format: {}", bearerToken);
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, JWTResponseMessage.INVALID_JWT_ERROR);
     }
 }

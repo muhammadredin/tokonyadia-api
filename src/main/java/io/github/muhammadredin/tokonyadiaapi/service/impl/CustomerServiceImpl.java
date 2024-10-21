@@ -18,6 +18,7 @@ import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -32,6 +33,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
@@ -43,26 +45,41 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public CustomerResponse createCustomer(CustomerRequest request, MultipartFile image) {
+        log.info("Creating new customer with request: {}", request);
         validationUtil.validate(request);
         List<String> errors = checkCustomer();
 
-        if (!errors.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
+        if (!errors.isEmpty()) {
+            log.warn("Customer creation failed due to errors: {}", errors);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
+        }
+
         Customer customer = customerRepository.saveAndFlush(toCustomer(request));
+        log.info("Customer created successfully with ID: {}", customer.getId());
+
         CustomerImage customerImage = customerImageService.saveImage(image, customer);
         customer.setCustomerImage(customerImage);
+
+        log.info("Customer image saved for customer ID: {}", customer.getId());
+
         return toCustomerResponse(customer);
     }
 
     @Transactional(readOnly = true)
     @Override
     public Customer getOne(String id) {
+        log.info("Fetching customer by ID: {}", id);
         return customerRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, CustomerResponseMessage.CUSTOMER_NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.error("Customer not found with ID: {}", id);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, CustomerResponseMessage.CUSTOMER_NOT_FOUND);
+                });
     }
 
     @Transactional(readOnly = true)
     @Override
     public CustomerResponse getCustomerById(String id) {
+        log.info("Fetching customer response for ID: {}", id);
         Customer customer = getOne(id);
         return toCustomerResponse(customer);
     }
@@ -70,14 +87,16 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional(readOnly = true)
     @Override
     public Page<CustomerResponse> searchCustomers(SearchCustomerRequest request) {
+        log.info("Searching for customers with request: {}", request);
         try {
             Sort sortBy = SortUtil.getSort(request.getSort());
-
             Specification<Customer> specification = CustomerSpecification.customer(request);
             Page<Customer> customers = customerRepository.findAll(specification, PagingUtil.getPageable(request, sortBy));
 
+            log.info("Found {} customers", customers.getTotalElements());
             return customers.map(this::toCustomerResponse);
         } catch (PropertyReferenceException e) {
+            log.error("Invalid property reference in sort request: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
@@ -85,11 +104,15 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public CustomerResponse updateCustomer(String id, CustomerUpdateRequest request) {
+        log.info("Updating customer with ID: {}", id);
         validationUtil.validate(request);
+
         Customer updatedCustomer = getOne(id);
         updatedCustomer.setName(request.getName());
         updatedCustomer.setAddress(request.getAddress());
         customerRepository.save(updatedCustomer);
+
+        log.info("Customer updated successfully with ID: {}", id);
         return toCustomerResponse(updatedCustomer);
     }
 
@@ -99,10 +122,12 @@ public class CustomerServiceImpl implements CustomerService {
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Customer customer = userAccount.getCustomer();
 
+        log.info("Updating customer image for customer ID: {}", customer.getId());
         CustomerImage customerImage = customerImageService.updateImage(image, customer);
-
         customer.setCustomerImage(customerImage);
+
         customerRepository.save(customer);
+        log.info("Customer image updated successfully for customer ID: {}", customer.getId());
         return toCustomerResponse(customer);
     }
 
@@ -112,12 +137,17 @@ public class CustomerServiceImpl implements CustomerService {
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Customer customer = userAccount.getCustomer();
 
-        if (customer.getCustomerImage() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        log.info("Deleting customer image for customer ID: {}", customer.getId());
+        if (customer.getCustomerImage() == null) {
+            log.warn("No image found for customer ID: {}", customer.getId());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
 
         customerImageService.deleteImage(customer.getCustomerImage());
-
         customer.setCustomerImage(null);
         customerRepository.saveAndFlush(customer);
+
+        log.info("Customer image deleted successfully for customer ID: {}", customer.getId());
         return toCustomerResponse(customer);
     }
 
@@ -126,13 +156,20 @@ public class CustomerServiceImpl implements CustomerService {
     public void deleteCustomer() {
         UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Customer customer = userAccount.getCustomer();
+
+        log.info("Deleting customer with ID: {}", customer.getId());
         deleteCustomerImage();
         customerRepository.delete(customer);
+
+        log.info("Customer with ID: {} deleted successfully", customer.getId());
     }
 
     private List<String> checkCustomer() {
         List<String> errors = new ArrayList<>();
-        if (customerRepository.existsByUserAccount(authService.getAuthentication())) errors.add(CustomerResponseMessage.CUSTOMER_ALREADY_EXISTS);
+        if (customerRepository.existsByUserAccount(authService.getAuthentication())) {
+            errors.add(CustomerResponseMessage.CUSTOMER_ALREADY_EXISTS);
+            log.warn("Customer already exists for user account: {}", authService.getAuthentication().getId());
+        }
         return errors;
     }
 
@@ -145,16 +182,12 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     private CustomerResponse toCustomerResponse(Customer customer) {
-        FileResponse profileImage;
-
-        if (customer.getCustomerImage() == null) {
-            profileImage = null;
-        } else {
-            profileImage = FileResponse.builder()
-                    .id(customer.getCustomerImage().getId())
-                    .url("/api/images/customers/" + customer.getCustomerImage().getId())
-                    .build();
-        }
+        FileResponse profileImage = customer.getCustomerImage() != null
+                ? FileResponse.builder()
+                .id(customer.getCustomerImage().getId())
+                .url("/api/images/customers/" + customer.getCustomerImage().getId())
+                .build()
+                : null;
 
         return CustomerResponse.builder()
                 .id(customer.getId())
