@@ -4,6 +4,7 @@ import io.github.muhammadredin.tokonyadiaapi.dto.response.FileInfo;
 import io.github.muhammadredin.tokonyadiaapi.service.FileStorageService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -25,16 +26,14 @@ import java.util.List;
 public class FileStorageServiceImpl implements FileStorageService {
     private final Integer MAX_SIZE;
     private final Path ROOT_PATH;
-    private final List<String> allowedImageTypes;
 
+    @Autowired
     public FileStorageServiceImpl(
             @Value("${tokonyadia.file-size}") Integer maxSize,
-            @Value("${tokonyadia.root-file-path}") String rootPath,
-            @Value("${tokonyadia.allowed-image-types}") List<String> allowedImageTypes
+            @Value("${tokonyadia.root-file-path}") String rootPath
     ) {
         this.MAX_SIZE = maxSize;
         this.ROOT_PATH = Paths.get(rootPath).normalize();
-        this.allowedImageTypes = allowedImageTypes;
     }
 
     @PostConstruct
@@ -81,9 +80,8 @@ public class FileStorageServiceImpl implements FileStorageService {
         if (image.getSize() > MAX_SIZE) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File size exceeds the allowed limit");
         }
-        if (!allowedImageTypes.contains(image.getContentType())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported file type");
-        }
+        if (!List.of("image/jpg", "image/jpeg", "image/png", "image/webp").contains(image.getContentType()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
     }
 
     @Transactional(readOnly = true)
