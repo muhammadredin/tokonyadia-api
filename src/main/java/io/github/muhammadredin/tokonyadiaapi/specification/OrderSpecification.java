@@ -24,10 +24,7 @@ public class OrderSpecification {
             // Predicate for store_id
             Predicate storeIdPredicate = criteriaBuilder.and(
                     criteriaBuilder.equal(productJoin.get("store"), store)
-                    // TODO: nyalakan ketika sudah menggunakan midtrans
-//                    criteriaBuilder.notEqual(invoiceJoin.get("paymentStatus"), PaymentStatus.PENDING)
             );
-
 
             // Specify group by clause (you can only groupBy for queries returning aggregate results)
             query.groupBy(

@@ -18,5 +18,7 @@ public class PaymentRequest {
     private List<MTItemDetail> itemDetails;
     @JsonProperty("customer_details")
     private MTCustomerDetail customerDetails;
+    @JsonProperty(value = "enabled_payments")
+    private List<String> enabledPayments;
 }
 

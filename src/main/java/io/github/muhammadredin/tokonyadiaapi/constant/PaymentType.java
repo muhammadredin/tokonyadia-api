@@ -9,7 +9,7 @@ public enum PaymentType {
     QRIS("qris"),
     GOPAY("gopay"),
     SHOPEEPAY("shopeepay"),
-    VIRTUAL_ACCOUNT("virtual");
+    BANK_TRANSFER("bank_transfer");
 
     private final String description;
 

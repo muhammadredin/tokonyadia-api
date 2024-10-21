@@ -138,6 +138,7 @@ public class TransactionServiceImpl implements TransactionService {
         PaymentRequest paymentRequest = PaymentRequest.builder()
                 .transactionDetails(transactionDetails)
                 .customerDetails(customerDetails)
+                .enabledPayments(List.of("bca_va", "gopay", "shopeepay", "other_qris"))
                 .itemDetails(itemDetails)
                 .build();
 
