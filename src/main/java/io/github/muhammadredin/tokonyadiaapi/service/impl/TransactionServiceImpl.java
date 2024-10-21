@@ -1,6 +1,6 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import io.github.muhammadredin.tokonyadiaapi.client.MidtransAppClient;
 import io.github.muhammadredin.tokonyadiaapi.constant.OrderStatus;
 import io.github.muhammadredin.tokonyadiaapi.constant.PaymentResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.constant.PaymentType;
@@ -11,18 +11,22 @@ import io.github.muhammadredin.tokonyadiaapi.dto.request.midtransRequest.*;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.midtransResponse.MidtransSnapResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.*;
 import io.github.muhammadredin.tokonyadiaapi.service.*;
+import io.github.muhammadredin.tokonyadiaapi.util.HashUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 @Service
@@ -33,8 +37,11 @@ public class TransactionServiceImpl implements TransactionService {
     private final OrderDetailsService orderDetailsService;
     private final InvoiceService invoiceService;
     private final CartService cartService;
-    private final MidtransService midtransService;
     private final ValidationUtil validationUtil;
+    private final MidtransAppClient midtransAppClient;
+
+    @Value("${tokonyadia.api.midtrans-server-key}")
+    private String MIDTRANS_SERVER_KEY;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -65,11 +72,6 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
 
         invoice = invoiceService.createInvoice(invoice);
-
-        // Prepare transaction details
-        MTTransactionDetail transactionDetails = MTTransactionDetail.builder()
-                .orderId(invoice.getId())
-                .build();
 
         // Create item details and process each order
         List<MTItemDetail> itemDetails = new ArrayList<>();
@@ -126,7 +128,11 @@ public class TransactionServiceImpl implements TransactionService {
             }
         }
 
-        transactionDetails.setGrossAmount(totalPayment);
+        // Prepare transaction details
+        MTTransactionDetail transactionDetails = MTTransactionDetail.builder()
+                .orderId(invoice.getId())
+                .grossAmount(totalPayment)
+                .build();
 
         // Prepare payment request for Midtrans
         PaymentRequest paymentRequest = PaymentRequest.builder()
@@ -134,22 +140,19 @@ public class TransactionServiceImpl implements TransactionService {
                 .customerDetails(customerDetails)
                 .itemDetails(itemDetails)
                 .build();
+
         log.info("Payment request prepared: {}", paymentRequest);
 
-        try {
-            // Charge payment using Midtrans service
-            MidtransSnapResponse midtransResponse = midtransService.chargePayment(paymentRequest);
+        // Charge payment using Midtrans service
+        String headerValue = "Basic " + Base64.getEncoder().encodeToString(MIDTRANS_SERVER_KEY.getBytes(StandardCharsets.UTF_8));
+        MidtransSnapResponse midtransResponse = midtransAppClient.createSnapTransaction(paymentRequest, headerValue);
 
-            // Update the invoice with Midtrans token and amount
-            invoice.setMidtransToken(midtransResponse.getToken());
-            invoice.setGrossAmount(totalPayment);
-            invoiceService.createInvoice(invoice);
+        // Update the invoice with Midtrans token and amount
+        invoice.setMidtransToken(midtransResponse.getToken());
+        invoice.setGrossAmount(totalPayment);
+        invoiceService.createInvoice(invoice);
 
-            return midtransResponse;
-        } catch (JsonProcessingException e) {
-            log.error("Error during payment processing: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-        }
+        return midtransResponse;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -159,6 +162,8 @@ public class TransactionServiceImpl implements TransactionService {
 
         String invoiceId = notification.getOrderId();
         String status = notification.getTransactionStatus();
+
+        validateSignatureKey(notification.getOrderId(), notification.getStatusCode(), notification.getGrossAmount(), notification.getSignatureKey());
 
         // Update invoice status based on notification
         switch (status) {
@@ -195,6 +200,14 @@ public class TransactionServiceImpl implements TransactionService {
             default:
                 log.warn("Received unrecognized transaction status: {} for invoice ID: {}", status, invoiceId);
                 break;
+        }
+    }
+
+    private void validateSignatureKey(String orderId, String statusCode, String grossAmount, String midtransSignatureKey) {
+        String rawString = orderId + statusCode + grossAmount + MIDTRANS_SERVER_KEY;
+        String signatureKey = HashUtil.encryptThisString(rawString);
+        if (!signatureKey.equalsIgnoreCase(midtransSignatureKey)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid signature key");
         }
     }
 }
