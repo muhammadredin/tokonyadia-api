@@ -4,6 +4,7 @@ import io.github.muhammadredin.tokonyadiaapi.constant.APIPath;
 import io.github.muhammadredin.tokonyadiaapi.constant.PaymentResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CheckoutRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.midtransRequest.MidtransNotification;
 import io.github.muhammadredin.tokonyadiaapi.service.InvoiceService;
 import io.github.muhammadredin.tokonyadiaapi.service.TransactionService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
@@ -47,5 +48,11 @@ public class PaymentController {
                 HttpStatus.OK,
                 PaymentResponseMessage.SUCCESS_GET_CUSTOMER_PAYMENT_DETAIL,
                 invoiceService.getCustomerPaymentDetail(id));
+    }
+
+    @PostMapping("/notification")
+    public ResponseEntity<?> handleMidtransWebhook(@RequestBody MidtransNotification notification) {
+        transactionService.updateInvoiceStatus(notification);
+        return ResponseEntity.ok().body(notification);
     }
 }

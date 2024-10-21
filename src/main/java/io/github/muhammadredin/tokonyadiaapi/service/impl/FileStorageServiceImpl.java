@@ -77,7 +77,7 @@ public class FileStorageServiceImpl implements FileStorageService {
 
             return FileInfo.builder()
                     .fileName(fileName)
-                    .filePath(filePath)
+                    .filePath(path + "/" + fileName)
                     .build();
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());

@@ -64,7 +64,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         if (userAccount.isPresent()) return userAccount.get();
 
 
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, UserResponseMessage.USER_NOT_FOUND_ERROR);
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bad Credentials");
     }
 
     private List<String> checkUserAccount (UserAccount userAccount) {

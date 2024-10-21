@@ -102,7 +102,7 @@ public class CustomerServiceImpl implements CustomerService {
         CustomerImage customerImage = customerImageService.updateImage(image, customer);
 
         customer.setCustomerImage(customerImage);
-        customerRepository.saveAndFlush(customer);
+        customerRepository.save(customer);
         return toCustomerResponse(customer);
     }
 

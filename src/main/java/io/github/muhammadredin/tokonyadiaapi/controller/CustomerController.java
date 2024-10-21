@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping(APIPath.CUSTOMER_API)
@@ -61,14 +62,15 @@ public class CustomerController {
     @PostMapping
     public ResponseEntity<?> createCustomerHandler(
             @RequestParam String customer,
-            @RequestParam MultipartFile image
+            @RequestParam List<MultipartFile> image
     ) {
         try {
+            if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
             CustomerRequest customerRequest = objectMapper.readValue(customer, CustomerRequest.class);
             return ResponseUtil.buildResponse(
                     HttpStatus.CREATED,
                     CustomerResponseMessage.CUSTOMER_CREATE_SUCCESS,
-                    customerService.createCustomer(customerRequest, image)
+                    customerService.createCustomer(customerRequest, image.get(0))
             );
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -92,12 +94,13 @@ public class CustomerController {
     @PutMapping("/{id}/image")
     public ResponseEntity<?> updateCustomerImageHandler(
             @PathVariable String id,
-            @RequestParam MultipartFile image
+            @RequestParam List<MultipartFile> image
     ) {
+        if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 CustomerResponseMessage.CUSTOMER_UPDATE_SUCCESS,
-                customerService.updateCustomerImage(image)
+                customerService.updateCustomerImage(image.get(0))
         );
     }
 

@@ -100,10 +100,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public ProductResponse addProductImage(String productId, MultipartFile image) {
+    public ProductResponse addProductImage(String productId, List<MultipartFile> images) {
         Product product = getOne(productId);
-        ProductImage productImage = productImageService.saveImage(image, product);
-        product.getProductImages().add(productImage);
+
+        List<ProductImage> productImages = productImageService.saveImageBulk(images, product);
+        for (ProductImage productImage : productImages) {
+            product.getProductImages().add(productImage);
+        }
+
         return toProductResponse(productRepository.saveAndFlush(product));
     }
 
@@ -129,7 +133,8 @@ public class ProductServiceImpl implements ProductService {
         Product product = getOne(id);
         List<ProductImage> productImages = product.getProductImages();
         for (ProductImage productImage : productImages) {
-            productImageService.deleteImage(productImage.getId());
+            ProductImage image = productImageService.getOne(productImage.getId());
+            productImageService.deleteImage(image.getId());
         }
         productRepository.delete(product);
     }

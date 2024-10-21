@@ -98,12 +98,12 @@ public class ProductController {
     @PostMapping("/{id}/images")
     public ResponseEntity<?> addProductImageHandler(
             @PathVariable String id,
-            @RequestParam MultipartFile image
+            @RequestParam List<MultipartFile> images
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 ProductResponseMessage.PRODUCT_UPDATE_SUCCESS,
-                productService.addProductImage(id, image)
+                productService.addProductImage(id, images)
         );
     }
 

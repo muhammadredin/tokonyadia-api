@@ -11,5 +11,5 @@ import java.nio.file.Path;
 @Builder
 public class FileInfo {
     private String fileName;
-    private Path filePath;
+    private String filePath;
 }

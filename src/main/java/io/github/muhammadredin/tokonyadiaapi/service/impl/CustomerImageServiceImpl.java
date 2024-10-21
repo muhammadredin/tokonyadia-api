@@ -9,6 +9,7 @@ import io.github.muhammadredin.tokonyadiaapi.repository.CustomerImageRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerImageService;
 import io.github.muhammadredin.tokonyadiaapi.service.FileStorageService;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -25,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermissions;
 
+@Slf4j
 @Service
 public class CustomerImageServiceImpl implements CustomerImageService {
     private final CustomerImageRepository customerImageRepository;
@@ -80,7 +82,7 @@ public class CustomerImageServiceImpl implements CustomerImageService {
                 .size(image.getSize())
                 .contentType(image.getContentType())
                 .fileName(fileInfo.getFileName())
-                .filePath(IMAGE_PATH.toString() + "/" + fileInfo.getFileName())
+                .filePath(fileInfo.getFilePath())
                 .customer(customer)
                 .build();
 
@@ -91,8 +93,10 @@ public class CustomerImageServiceImpl implements CustomerImageService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteImage(CustomerImage customerImage) {
-        fileStorageService.deleteFile(customerImage.getFilePath());
+        log.info("Deleting image {}", customerImage.getFilePath());
         customerImageRepository.delete(customerImage);
+        customerImageRepository.flush();
+        fileStorageService.deleteFile(customerImage.getFilePath());
     }
 
     @Transactional(rollbackFor = Exception.class)

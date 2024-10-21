@@ -22,7 +22,7 @@ public interface ProductService {
 
     ProductResponse updateProduct(String id, ProductRequest product);
 
-    ProductResponse addProductImage(String productId, MultipartFile image);
+    ProductResponse addProductImage(String productId, List<MultipartFile> images);
 
     ProductResponse deleteProductImage(String productId, String imageId);
 

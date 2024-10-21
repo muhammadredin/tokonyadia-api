@@ -61,6 +61,8 @@ public class ProductImageServiceImpl implements ProductImageService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public List<ProductImage> saveImageBulk(List<MultipartFile> images, Product product) {
+        if (images.size() > 5 || product.getProductImages() != null && (product.getProductImages().size() + images.size() > 5))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Maximum product image is 5");
         return images.stream().map(image -> saveImage(image, product)).toList();
     }
 
@@ -81,9 +83,9 @@ public class ProductImageServiceImpl implements ProductImageService {
     @Override
     public void deleteImage(String imageId) {
         ProductImage productImage = getOne(imageId);
-
-        fileStorageService.deleteFile(productImage.getFilePath());
         productImageRepository.delete(productImage);
+        productImageRepository.flush();
+        fileStorageService.deleteFile(productImage.getFilePath());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -95,7 +97,7 @@ public class ProductImageServiceImpl implements ProductImageService {
                 .fileName(fileInfo.getFileName())
                 .contentType(file.getContentType())
                 .size(file.getSize())
-                .filePath(IMAGE_PATH.toString() + "/" + fileInfo.getFileName())
+                .filePath(fileInfo.getFilePath())
                 .product(product)
                 .build();
 

@@ -22,7 +22,6 @@ import java.util.*;
 @Slf4j
 public class MidtransServiceImpl implements MidtransService {
     private final RestTemplate restTemplate;
-    private final ValidationUtil validationUtil;
     private final ObjectMapper objectMapper;
 
     @Value("${tokonyadia.api.midtrans-snap-payment-url}")
@@ -31,8 +30,6 @@ public class MidtransServiceImpl implements MidtransService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public MidtransSnapResponse chargePayment(PaymentRequest paymentRequest) throws JsonProcessingException {
-        validationUtil.validate(paymentRequest);
-
         // Convert the map to JSON using ObjectMapper
         String jsonBody = objectMapper.writeValueAsString(paymentRequest);
 

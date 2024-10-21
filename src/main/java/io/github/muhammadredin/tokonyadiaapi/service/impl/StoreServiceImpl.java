@@ -5,16 +5,10 @@ import io.github.muhammadredin.tokonyadiaapi.constant.StoreResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductResponse;
-import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreOrderResponse;
-import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreResponse;
-import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreWithProductsResponse;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.*;
 import io.github.muhammadredin.tokonyadiaapi.entity.*;
 import io.github.muhammadredin.tokonyadiaapi.repository.StoreRepository;
-import io.github.muhammadredin.tokonyadiaapi.service.AuthService;
-import io.github.muhammadredin.tokonyadiaapi.service.OrderService;
-import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
-import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
+import io.github.muhammadredin.tokonyadiaapi.service.*;
 import io.github.muhammadredin.tokonyadiaapi.specification.OrderSpecification;
 import io.github.muhammadredin.tokonyadiaapi.specification.StoreSpecification;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
@@ -28,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -38,18 +33,21 @@ import java.util.List;
 public class StoreServiceImpl implements StoreService {
     private final StoreRepository storeRepository;
     private final ProductService productService;
+    private final StoreImageService storeImageService;
     private final OrderService orderService;
     private final ValidationUtil validationUtil;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public StoreResponse createStore(StoreRequest request) {
+    public StoreResponse createStore(StoreRequest request, MultipartFile image) {
         validationUtil.validate(request);
         List<String> errors = checkStore(request.getNoSiup(), request.getName());
-
         if (!errors.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
 
-        return toStoreResponse(storeRepository.save(toStore(request)));
+        Store store = storeRepository.save(toStore(request));
+        StoreImage storeImage = storeImageService.saveImage(image, store);
+        store.setStoreImage(storeImage);
+        return toStoreResponse(store);
     }
 
     @Transactional(readOnly = true)
@@ -87,6 +85,34 @@ public class StoreServiceImpl implements StoreService {
         store.setAddress(request.getAddress());
         store.setPhoneNumber(request.getPhoneNumber());
         return toStoreResponse(storeRepository.save(store));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public StoreResponse updateStoreImage(MultipartFile image) {
+        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Store store = userAccount.getStore();
+
+        StoreImage storeImage = storeImageService.updateImage(image, store);
+
+        store.setStoreImage(storeImage);
+        storeRepository.saveAndFlush(store);
+        return toStoreResponse(store);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public StoreResponse deleteStoreImage() {
+        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Store store = userAccount.getStore();
+
+        if (store.getStoreImage() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+
+        storeImageService.deleteImage(store.getStoreImage());
+
+        store.setStoreImage(null);
+        storeRepository.saveAndFlush(store);
+        return toStoreResponse(store);
     }
 
     @Transactional(rollbackFor = Exception.class)

@@ -58,10 +58,6 @@ public class SeederController {
                         .noSiup("78561234")
                         .build()
         );
-
-        for (StoreRequest storeRequest : stores) {
-            storeService.createStore(storeRequest);
-        }
     }
 
     @PostMapping("/product")

@@ -37,11 +37,11 @@ public class Product {
     private Store store;
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
-    private List<OrderDetails> erDetails;
+    private List<OrderDetails> orderDetails;
 
     @OneToMany(mappedBy = "product")
     private Set<Cart> cart;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "product")
     private List<ProductImage> productImages;
 }
