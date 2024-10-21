@@ -3,6 +3,7 @@ package io.github.muhammadredin.tokonyadiaapi.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.muhammadredin.tokonyadiaapi.constant.APIPath;
 import io.github.muhammadredin.tokonyadiaapi.constant.CustomerResponseMessage;
+import io.github.muhammadredin.tokonyadiaapi.constant.ProductResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.constant.StoreResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
@@ -20,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping(APIPath.STORE_API)
@@ -100,6 +102,7 @@ public class StoreController {
             @PathVariable String id,
             @RequestParam List<MultipartFile> image
     ) {
+        if (Objects.requireNonNull(image.get(0).getOriginalFilename()).isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image should not be empty");
         if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
@@ -140,7 +143,7 @@ public class StoreController {
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
-                StoreResponseMessage.STORE_GET_SUCCESS,
+                ProductResponseMessage.PRODUCT_GET_SUCCESS,
                 storeService.getAllStoreOrders(id)
         );
     }
@@ -153,7 +156,7 @@ public class StoreController {
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
-                StoreResponseMessage.STORE_GET_SUCCESS,
+                ProductResponseMessage.PRODUCT_GET_SUCCESS,
                 orderService.getOrderDetailByStoreId(orderId)
         );
     }
@@ -167,7 +170,7 @@ public class StoreController {
         storeService.processOrder(orderId);
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
-                StoreResponseMessage.STORE_GET_SUCCESS,
+                StoreResponseMessage.ORDER_PROCESS_SUCCESS,
                 null
         );
     }

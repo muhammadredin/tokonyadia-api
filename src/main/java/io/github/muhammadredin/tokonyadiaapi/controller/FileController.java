@@ -2,7 +2,9 @@ package io.github.muhammadredin.tokonyadiaapi.controller;
 
 import io.github.muhammadredin.tokonyadiaapi.dto.response.FileDownloadResponse;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerImageService;
+import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
 import io.github.muhammadredin.tokonyadiaapi.service.ProductImageService;
+import io.github.muhammadredin.tokonyadiaapi.service.StoreImageService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class FileController {
     private final ProductImageService productImageService;
     private final CustomerImageService customerImageService;
+    private final StoreImageService storeImageService;
 
     @GetMapping("/images/products/{id}")
     public ResponseEntity<?> getProductImage(@PathVariable String id) {
@@ -38,6 +41,17 @@ public class FileController {
     @GetMapping("/images/customers/{id}")
     public ResponseEntity<?> getCustomerImage(@PathVariable String id) {
         FileDownloadResponse resource = customerImageService.getById(id);
+        String headerValue = String.format("inline; filename=%s", resource.getResource().getFilename());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
+                .contentType(MediaType.valueOf(resource.getContentType()))
+                .body(resource.getResource());
+    }
+
+    @GetMapping("/images/stores/{id}")
+    public ResponseEntity<?> getStoreImage(@PathVariable String id) {
+        FileDownloadResponse resource = storeImageService.getById(id);
         String headerValue = String.format("inline; filename=%s", resource.getResource().getFilename());
         return ResponseEntity
                 .status(HttpStatus.OK)

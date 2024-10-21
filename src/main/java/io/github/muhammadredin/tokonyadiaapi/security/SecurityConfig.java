@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable) // Disable basic authentication
                 .authorizeRequests(request -> request.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll() // Allow access to error dispatch
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow CORS preflight requests
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll() // Allow login endpoint
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll() // Allow registration endpoint
                         .requestMatchers(HttpMethod.POST, "/api/auth/refresh-token").permitAll() // Allow refresh token endpoint

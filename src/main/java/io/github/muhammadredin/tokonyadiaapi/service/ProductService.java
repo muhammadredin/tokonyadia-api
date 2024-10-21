@@ -2,6 +2,7 @@ package io.github.muhammadredin.tokonyadiaapi.service;
 
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductUpdateRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchProductRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Product;
@@ -20,7 +21,7 @@ public interface ProductService {
 
     Page<ProductResponse> searchProduct(SearchProductRequest request);
 
-    ProductResponse updateProduct(String id, ProductRequest product);
+    ProductResponse updateProduct(String id, ProductUpdateRequest product);
 
     ProductResponse addProductImage(String productId, List<MultipartFile> images);
 

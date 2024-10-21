@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.muhammadredin.tokonyadiaapi.constant.APIPath;
 import io.github.muhammadredin.tokonyadiaapi.constant.ProductResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductUpdateRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchProductRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.ProductService;
 import io.github.muhammadredin.tokonyadiaapi.service.StoreService;
@@ -85,7 +86,7 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProductHandler(
             @PathVariable String id,
-            @Valid @RequestBody ProductRequest product
+            @Valid @RequestBody ProductUpdateRequest product
     ) {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,

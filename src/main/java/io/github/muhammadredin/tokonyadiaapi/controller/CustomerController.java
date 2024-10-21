@@ -4,12 +4,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.muhammadredin.tokonyadiaapi.constant.APIPath;
 import io.github.muhammadredin.tokonyadiaapi.constant.CustomerResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.*;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.CommonResponse;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.CustomerResponse;
 import io.github.muhammadredin.tokonyadiaapi.service.CartService;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
 import io.github.muhammadredin.tokonyadiaapi.util.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,16 +30,29 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
+@Slf4j
 @RestController
 @RequestMapping(APIPath.CUSTOMER_API)
 @RequiredArgsConstructor
+@SecurityRequirement(name = "Bearer Authentication")
+@Tag(name = "Customer Management", description = "Operations related to managing customer data, including creation, update, retrieval, and deletion")
 public class CustomerController {
+    private static class CommonResponseListCustomerResponse extends CommonResponse<Page<CustomerResponse>> {}
+    private static class CommonResponseCustomerResponse extends CommonResponse<CustomerResponse> {}
+
     private final CustomerService customerService;
     private final ObjectMapper objectMapper;
-    private final CartService cartService;
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('STORE')")
+    @Operation(summary = "Retrieve all customers",
+            description = "Retrieve a paginated list of all customers. Optional query parameters include pagination and sorting.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Customers retrieved successfully", content = @Content(schema = @Schema(implementation = CommonResponseListCustomerResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized access", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "403", description = "Forbidden access", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+            })
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/search")
     public ResponseEntity<?> searchCustomersHandler(
             @RequestParam(required = false) String q,
@@ -47,6 +72,13 @@ public class CustomerController {
         );
     }
 
+    @Operation(summary = "Get customer by ID",
+            description = "Retrieve the details of a specific customer by their ID.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Customer details retrieved successfully", content = @Content(schema = @Schema(implementation = CommonResponseCustomerResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized access", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "Customer not found", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+            })
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
     @GetMapping("/{id}")
     public ResponseEntity<?> getCustomerByIdHandler(
@@ -58,11 +90,18 @@ public class CustomerController {
                 customerService.getCustomerById(id));
     }
 
+    @Operation(summary = "Create a new customer",
+            description = "This endpoint allows the creation of a new customer. The customer data is passed in the request body.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Customer created successfully", content = @Content(schema = @Schema(implementation = CommonResponseCustomerResponse.class))),
+                    @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized access", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+            })
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @PostMapping
+    @PostMapping()
     public ResponseEntity<?> createCustomerHandler(
             @RequestParam String customer,
-            @RequestParam List<MultipartFile> image
+            @RequestParam(name = "image") List<MultipartFile> image
     ) {
         try {
             if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
@@ -77,6 +116,15 @@ public class CustomerController {
         }
     }
 
+    @Operation(summary = "Update customer details",
+            description = "Update the details of a specific customer by their ID. Authorization is required for admin users or customers with appropriate access.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Customer updated successfully", content = @Content(schema = @Schema(implementation = CommonResponseCustomerResponse.class))),
+                    @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized access", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "403", description = "Forbidden access", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "Customer not found", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+            })
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
     @PutMapping("/{id}")
     public ResponseEntity<?> updateCustomerHandler(
@@ -90,12 +138,22 @@ public class CustomerController {
         );
     }
 
+    @Operation(summary = "Update customer photo",
+            description = "Update the photo of a specific customer by their ID. Authorization is required for admin users or customers with appropriate access.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Customer updated successfully", content = @Content(schema = @Schema(implementation = CommonResponseCustomerResponse.class))),
+                    @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized access", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "403", description = "Forbidden access", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "Customer not found", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+            })
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
-    @PutMapping("/{id}/image")
+    @PutMapping(path ="/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateCustomerImageHandler(
             @PathVariable String id,
             @RequestParam List<MultipartFile> image
     ) {
+        if (Objects.requireNonNull(image.get(0).getOriginalFilename()).isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image should not be empty");
         if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
@@ -104,6 +162,15 @@ public class CustomerController {
         );
     }
 
+    @Operation(summary = "Delete customer photo",
+            description = "Delete the photo of a specific customer by their ID. Authorization is required for admin users or customers with appropriate access.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Customer updated successfully", content = @Content(schema = @Schema(implementation = CommonResponseCustomerResponse.class))),
+                    @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized access", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "403", description = "Forbidden access", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "Customer not found", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+            })
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
     @DeleteMapping("/{id}/image")
     public ResponseEntity<?> deleteCustomerImageHandler(
@@ -116,6 +183,14 @@ public class CustomerController {
         );
     }
 
+    @Operation(summary = "Delete customer by ID",
+            description = "Delete a specific customer by their ID. Only authorized users can perform this action.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Customer deleted successfully", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized access", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "403", description = "Forbidden access", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "Customer not found", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+            })
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCustomerHandler(
@@ -125,56 +200,6 @@ public class CustomerController {
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 CustomerResponseMessage.CUSTOMER_DELETE_SUCCESS,
-                null
-        );
-    }
-
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @PostMapping("/cart")
-    public ResponseEntity<?> addProductToCartHandler(
-            @RequestBody CartRequest cartRequest
-            ) {
-        cartService.addProductToCart(cartRequest);
-        return ResponseUtil.buildResponse(
-                HttpStatus.OK,
-                CustomerResponseMessage.CUSTOMER_ADD_PRODUCT_SUCCESS,
-                null
-        );
-    }
-
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @GetMapping("/cart")
-    public ResponseEntity<?> getAllProductFromCartHandler() {
-        return ResponseUtil.buildResponse(
-                HttpStatus.OK,
-                CustomerResponseMessage.CUSTOMER_GET_PRODUCTS_SUCCESS,
-                cartService.getAllProduct()
-        );
-    }
-
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @PutMapping("/cart/{cartId}")
-    public ResponseEntity<?> updateCartHandler(
-            @PathVariable String cartId,
-            @RequestBody CartUpdateProductQuantityRequest request
-    ) {
-        cartService.updateProductQuantity(cartId, request);
-        return ResponseUtil.buildResponse(
-                HttpStatus.OK,
-                CustomerResponseMessage.CUSTOMER_UPDATE_PRODUCTS_SUCCESS,
-                null
-        );
-    }
-
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @DeleteMapping("/cart/{cartId}")
-    public ResponseEntity<?> deleteCartHandler(
-            @PathVariable String cartId
-    ) {
-        cartService.deleteCartById(cartId);
-        return ResponseUtil.buildResponse(
-                HttpStatus.OK,
-                CustomerResponseMessage.CUSTOMER_DELETE_PRODUCTS_SUCCESS,
                 null
         );
     }

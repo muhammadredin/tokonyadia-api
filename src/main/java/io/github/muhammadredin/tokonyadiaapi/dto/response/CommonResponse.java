@@ -5,6 +5,8 @@ import lombok.*;
 @Getter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
+@Setter
 public class CommonResponse<T> {
     private int status;
     private String message;

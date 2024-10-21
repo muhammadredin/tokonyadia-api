@@ -56,7 +56,7 @@ public class FileStorageServiceImpl implements FileStorageService {
             validateImage(image);
 
             String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
-            Path imagePath = ROOT_PATH.resolve(path.normalize());
+            Path imagePath = ROOT_PATH.resolve(path.toString().substring(1));
             Path filePath = imagePath.resolve(fileName);
 
             log.info("Saving image at: {}", filePath);

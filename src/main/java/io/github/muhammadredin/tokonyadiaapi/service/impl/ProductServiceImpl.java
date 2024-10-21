@@ -1,6 +1,7 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.ProductResponseMessage;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductUpdateRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchProductRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.FileResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductResponse;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,6 +47,11 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public ProductResponse createProduct(ProductRequest request, Store store, List<MultipartFile> images) {
+        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (!userAccount.getStore().getId().equals(store.getId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+
         log.info("Creating product for store: {}", store.getId());
 
         List<String> errors = checkProduct(store.getId());
@@ -96,10 +103,16 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public ProductResponse updateProduct(String id, ProductRequest request) {
+    public ProductResponse updateProduct(String id, ProductUpdateRequest request) {
         log.info("Updating product ID: {}", id);
         validationUtil.validate(request);
         Product product = getOne(id);
+
+        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (!userAccount.getStore().getId().equals(product.getStore().getId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+
         product.setName(request.getName());
         product.setPrice(request.getPrice());
         product.setDescription(request.getDescription());

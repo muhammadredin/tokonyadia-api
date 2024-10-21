@@ -7,4 +7,5 @@ public class APIPath {
     public static final String CUSTOMER_API = "/api/customers";
     public static final String ORDER_API = "/api/orders";
     public static final String PAYMENT_API = "/api/payments";
+    public static final String CART_API = "/api/cart";
 }

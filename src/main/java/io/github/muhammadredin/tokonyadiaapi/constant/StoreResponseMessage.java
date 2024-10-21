@@ -10,4 +10,5 @@ public class StoreResponseMessage {
     public static final String STORE_ACCOUNT_EXIST_ERROR = "Store with this account already exists";
     public static final String STORE_NO_SIUP_EXIST_ERROR = "Store with this no siup already exists";
     public static final String STORE_PHONE_NUMBER_EXIST_ERROR = "Store with this phone number already exists";
+    public static final String ORDER_PROCESS_SUCCESS = "Order processed successfully";
 }

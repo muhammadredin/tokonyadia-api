@@ -3,6 +3,7 @@ package io.github.muhammadredin.tokonyadiaapi.service.impl;
 import io.github.muhammadredin.tokonyadiaapi.constant.OrderStatus;
 import io.github.muhammadredin.tokonyadiaapi.constant.StoreResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductUpdateRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.*;
@@ -168,14 +169,14 @@ public class StoreServiceImpl implements StoreService {
 
         for (OrderDetails orderDetails : order.getOrderDetails()) {
             Product product = orderDetails.getProduct();
-            ProductRequest productRequest = ProductRequest.builder()
+            ProductUpdateRequest productUpdateRequest = ProductUpdateRequest.builder()
                     .name(product.getName())
                     .description(product.getDescription())
                     .price(product.getPrice())
                     .stock(product.getStock() - orderDetails.getQuantity())
                     .build();
 
-            productService.updateProduct(product.getId(), productRequest);
+            productService.updateProduct(product.getId(), productUpdateRequest);
         }
         log.info("Processed order ID: {}", orderId);
     }
@@ -208,6 +209,12 @@ public class StoreServiceImpl implements StoreService {
     }
 
     private StoreResponse toStoreResponse(Store response) {
+        FileResponse profileImage = response.getStoreImage() != null
+                ? FileResponse.builder()
+                .id(response.getStoreImage().getId())
+                .url("/api/images/stores/" + response.getStoreImage().getId())
+                .build()
+                : null;
         return StoreResponse.builder()
                 .id(response.getId())
                 .noSiup(response.getNoSiup())
@@ -215,10 +222,12 @@ public class StoreServiceImpl implements StoreService {
                 .address(response.getAddress())
                 .phoneNumber(response.getPhoneNumber())
                 .userId(response.getUserAccount().getId())
+                .image(profileImage)
                 .build();
     }
 
     private StoreWithProductsResponse toStoreWithProductsResponse(Store response) {
+
         return StoreWithProductsResponse.builder()
                 .id(response.getId())
                 .noSiup(response.getNoSiup())

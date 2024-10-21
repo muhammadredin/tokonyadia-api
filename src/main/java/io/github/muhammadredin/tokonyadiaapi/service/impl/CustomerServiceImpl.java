@@ -140,7 +140,7 @@ public class CustomerServiceImpl implements CustomerService {
         log.info("Deleting customer image for customer ID: {}", customer.getId());
         if (customer.getCustomerImage() == null) {
             log.warn("No image found for customer ID: {}", customer.getId());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Customer doesn't have image to be deleted");
         }
 
         customerImageService.deleteImage(customer.getCustomerImage());

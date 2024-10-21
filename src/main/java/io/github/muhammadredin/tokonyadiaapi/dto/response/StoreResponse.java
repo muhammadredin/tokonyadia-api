@@ -15,4 +15,5 @@ public class StoreResponse {
     private String address;
     private String phoneNumber;
     private String userId;
+    private FileResponse image;
 }
