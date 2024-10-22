@@ -1,25 +1,32 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.CustomerResponseMessage;
+import io.github.muhammadredin.tokonyadiaapi.constant.OrderStatus;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CustomerUpdateRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchCustomerRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchOrderRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.CustomerResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.FileResponse;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.OrderResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Customer;
 import io.github.muhammadredin.tokonyadiaapi.entity.CustomerImage;
+import io.github.muhammadredin.tokonyadiaapi.entity.Order;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.CustomerRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.AuthService;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerImageService;
 import io.github.muhammadredin.tokonyadiaapi.service.CustomerService;
+import io.github.muhammadredin.tokonyadiaapi.service.OrderService;
 import io.github.muhammadredin.tokonyadiaapi.specification.CustomerSpecification;
+import io.github.muhammadredin.tokonyadiaapi.specification.OrderSpecification;
 import io.github.muhammadredin.tokonyadiaapi.util.PagingUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.SortUtil;
 import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.mapping.PropertyReferenceException;
@@ -42,6 +49,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerImageService customerImageService;
     private final ValidationUtil validationUtil;
     private final AuthService authService;
+    private final OrderService orderService;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -87,6 +95,29 @@ public class CustomerServiceImpl implements CustomerService {
         log.info("Fetching customer response for ID: {}", id);
         Customer customer = getOne(id);
         return toCustomerResponse(customer);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Page<OrderResponse> getAllCustomerOrders(String customerId, SearchOrderRequest request) {
+        Specification<Order> specification = OrderSpecification.customerOrderDetails(
+                getOne(customerId),
+                request.getStartDate(),
+                request.getEndDate(),
+                OrderStatus.fromDescription(request.getOrderStatus()));
+        Sort sortBy = SortUtil.getSort(request.getSort());
+        Pageable pageable = PagingUtil.getPageable(request, sortBy);
+
+        Page<OrderResponse> orders = orderService.getOrdersBySpecification(specification, pageable)
+                .map(o -> {
+                    return OrderResponse.builder()
+                            .orderId(o.getId())
+                            .customerName(o.getInvoice().getCustomer().getName())
+                            .orderStatus(o.getOrderStatus().name())
+                            .build();
+                });
+        log.info("Fetched all orders for customer ID: {}", customerId);
+        return orders;
     }
 
     @Transactional(readOnly = true)

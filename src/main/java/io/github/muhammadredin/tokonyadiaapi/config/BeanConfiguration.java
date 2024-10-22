@@ -18,17 +18,17 @@ import java.util.Properties;
 @Configuration
 public class BeanConfiguration {
 
-    @Value("${spring.mail.host}")
-    public String MAIL_HOST;
-
-    @Value("${spring.mail.port}")
-    public Integer MAIL_PORT;
-
-    @Value("${spring.mail.username}")
-    public String MAIL_USERNAME;
-
-    @Value("${spring.mail.password}")
-    public String MAIL_PASSWORD;
+//    @Value("${spring.mail.host}")
+//    public String MAIL_HOST;
+//
+//    @Value("${spring.mail.port}")
+//    public Integer MAIL_PORT;
+//
+//    @Value("${spring.mail.username}")
+//    public String MAIL_USERNAME;
+//
+//    @Value("${spring.mail.password}")
+//    public String MAIL_PASSWORD;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -53,11 +53,11 @@ public class BeanConfiguration {
     @Bean
     public JavaMailSender mailSender() {
         JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost(MAIL_HOST);
-        sender.setPort(MAIL_PORT);
-
-        sender.setUsername(MAIL_USERNAME);
-        sender.setPassword(MAIL_PASSWORD);
+//        sender.setHost(MAIL_HOST);
+//        sender.setPort(MAIL_PORT);
+//
+//        sender.setUsername(MAIL_USERNAME);
+//        sender.setPassword(MAIL_PASSWORD);
 
         Properties props = sender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");

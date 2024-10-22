@@ -2,6 +2,7 @@ package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.OrderResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.constant.OrderStatus;
+import io.github.muhammadredin.tokonyadiaapi.dto.OrderDetailWithTotal;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreOrderDetailResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.OrderDetailResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.ProductOrderResponse;
@@ -13,6 +14,8 @@ import io.github.muhammadredin.tokonyadiaapi.repository.OrderRepository;
 import io.github.muhammadredin.tokonyadiaapi.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -50,21 +53,7 @@ public class OrderServiceImpl implements OrderService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access Denied");
         }
 
-        List<ProductOrderResponse> productDetails = new ArrayList<>();
-        int totalPrice = 0;
-
-        for (OrderDetails orderDetails : order.getOrderDetails()) {
-            totalPrice += orderDetails.getPrice() * orderDetails.getQuantity();
-
-            ProductOrderResponse productOrderResponse = ProductOrderResponse.builder()
-                    .productId(orderDetails.getProduct().getId())
-                    .productName(orderDetails.getProduct().getName())
-                    .productPrice(orderDetails.getPrice())
-                    .quantity(orderDetails.getQuantity())
-                    .build();
-
-            productDetails.add(productOrderResponse);
-        }
+        OrderDetailWithTotal orderDetail = getOrderDetail(order.getOrderDetails());
 
         log.info("Order details fetched successfully for order ID: {}", orderId);
         return OrderDetailResponse.builder()
@@ -72,9 +61,9 @@ public class OrderServiceImpl implements OrderService {
                 .orderDate(order.getOrderDate())
                 .orderStatus(order.getOrderStatus())
                 .shippingProvider(order.getShippingProvider())
-                .totalPrice(totalPrice)
+                .totalPrice(orderDetail.getTotalPrice())
                 .shippingAddress(order.getInvoice().getCustomer().getAddress())
-                .productDetails(productDetails)
+                .productDetails(orderDetail.getItems())
                 .build();
     }
 
@@ -99,9 +88,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<Order> getOrdersBySpecification(Specification<Order> specification) {
+    public Page<Order> getOrdersBySpecification(Specification<Order> specification, Pageable pageable) {
         log.info("Fetching orders with specified criteria");
-        return orderRepository.findAll(specification);
+        return orderRepository.findAll(specification, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -117,21 +106,7 @@ public class OrderServiceImpl implements OrderService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, OrderResponseMessage.ERROR_ORDER_NOT_FOUND);
         }
 
-        List<ProductOrderResponse> productDetails = new ArrayList<>();
-        int totalPrice = 0;
-
-        for (OrderDetails orderDetails : order.getOrderDetails()) {
-            totalPrice += orderDetails.getPrice() * orderDetails.getQuantity();
-
-            ProductOrderResponse productOrderResponse = ProductOrderResponse.builder()
-                    .productId(orderDetails.getProduct().getId())
-                    .productName(orderDetails.getProduct().getName())
-                    .productPrice(orderDetails.getPrice())
-                    .quantity(orderDetails.getQuantity())
-                    .build();
-
-            productDetails.add(productOrderResponse);
-        }
+        OrderDetailWithTotal orderDetail = getOrderDetail(order.getOrderDetails());
 
         log.info("Order details fetched successfully for order ID: {}", orderId);
         return StoreOrderDetailResponse.builder()
@@ -140,10 +115,33 @@ public class OrderServiceImpl implements OrderService {
                 .orderId(order.getId())
                 .orderStatus(order.getOrderStatus())
                 .orderDate(order.getOrderDate())
-                .totalPrice(totalPrice)
+                .totalPrice(orderDetail.getTotalPrice())
                 .shippingAddress(order.getInvoice().getCustomer().getAddress())
                 .shippingProvider(order.getShippingProvider())
-                .productDetails(productDetails)
+                .productDetails(orderDetail.getItems())
+                .build();
+    }
+
+    private OrderDetailWithTotal getOrderDetail(List<OrderDetails> orderDetails) {
+        List<ProductOrderResponse> productDetails = new ArrayList<>();
+        Long totalPrice = 0L;
+
+        for (OrderDetails orderDetail : orderDetails) {
+            totalPrice += orderDetail.getPrice() * orderDetail.getQuantity();
+
+            ProductOrderResponse productOrderResponse = ProductOrderResponse.builder()
+                    .productId(orderDetail.getProduct().getId())
+                    .productName(orderDetail.getProduct().getName())
+                    .productPrice(orderDetail.getPrice())
+                    .quantity(orderDetail.getQuantity())
+                    .build();
+
+            productDetails.add(productOrderResponse);
+        }
+
+        return OrderDetailWithTotal.builder()
+                .items(productDetails)
+                .totalPrice(totalPrice)
                 .build();
     }
 }

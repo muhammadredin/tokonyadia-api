@@ -90,6 +90,31 @@ public class CustomerController {
                 customerService.getCustomerById(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.customerServiceEval(#id)")
+    @GetMapping("/{id}/orders")
+    public ResponseEntity<?> getCustomerOrdersHandler(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String orderStatus,
+            @RequestParam String startDate,
+            @RequestParam String endDate
+    ) {
+        SearchOrderRequest request = SearchOrderRequest.builder()
+                .page(page)
+                .size(size)
+                .sort(sort)
+                .orderStatus(orderStatus)
+                .startDate(startDate)
+                .endDate(endDate)
+                .build();
+        return ResponseUtil.buildResponsePaging(
+                HttpStatus.OK,
+                CustomerResponseMessage.CUSTOMER_GET_SUCCESS,
+                customerService.getAllCustomerOrders(id, request));
+    }
+
     @Operation(summary = "Create a new customer",
             description = "This endpoint allows the creation of a new customer. The customer data is passed in the request body.",
             responses = {
@@ -196,6 +221,8 @@ public class CustomerController {
                 null
         );
     }
+
+
 
     private CustomerRequest customerRequestMap(String request) {
         try {

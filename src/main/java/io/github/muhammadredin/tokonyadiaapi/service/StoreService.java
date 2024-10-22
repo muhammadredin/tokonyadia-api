@@ -2,9 +2,10 @@ package io.github.muhammadredin.tokonyadiaapi.service;
 
 
 import io.github.muhammadredin.tokonyadiaapi.dto.request.PagingAndSortingRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchOrderRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreOrderResponse;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.OrderResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreWithProductsResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Store;
@@ -18,21 +19,21 @@ import java.util.List;
 public interface StoreService {
     StoreResponse createStore(StoreRequest request, List<MultipartFile> image);
 
-    StoreResponse getStoreById(String id);
+    StoreResponse getStoreById(String storeId);
 
-    Store getOne(String id);
+    Store getOne(String storeId);
 
     Page<StoreResponse> getAllStore(SearchStoreRequest request);
 
-    StoreResponse updateStore(String id, StoreRequest request);
+    StoreResponse updateStore(String storeId, StoreRequest request);
 
-    StoreResponse updateStoreImage(String id, List<MultipartFile> image);
+    StoreResponse updateStoreImage(String storeId, List<MultipartFile> image);
 
-    StoreResponse deleteStoreImage(String id);
+    StoreResponse deleteStoreImage(String storeId);
 
-    void deleteStore(String id);
+    void deleteStore(String storeId);
 
-    List<StoreOrderResponse> getAllStoreOrders(String storeId);
+    Page<OrderResponse> getAllStoreOrders(String storeId, SearchOrderRequest request);
 
-    void processOrder(String orderId);
+    void processOrder(String storeId, String orderId);
 }

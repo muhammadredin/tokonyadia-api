@@ -2,10 +2,7 @@ package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.constant.OrderStatus;
 import io.github.muhammadredin.tokonyadiaapi.constant.StoreResponseMessage;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.ProductUpdateRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
-import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.*;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.*;
 import io.github.muhammadredin.tokonyadiaapi.entity.*;
 import io.github.muhammadredin.tokonyadiaapi.repository.StoreRepository;
@@ -18,6 +15,7 @@ import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j; // Import SLF4J
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -51,7 +49,8 @@ public class StoreServiceImpl implements StoreService {
             log.error("Store creation failed: {}", errors);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
         }
-        if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
+        if (image.size() > 1)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
 
         Store store = storeRepository.save(toStore(request));
         log.info("Store created successfully with ID: {}", store.getId());
@@ -68,18 +67,18 @@ public class StoreServiceImpl implements StoreService {
 
     @Transactional(readOnly = true)
     @Override
-    public StoreResponse getStoreById(String id) {
-        Store store = getOne(id);
-        log.info("Fetched store by ID: {}", id);
+    public StoreResponse getStoreById(String storeId) {
+        Store store = getOne(storeId);
+        log.info("Fetched store by ID: {}", storeId);
         return toStoreResponse(store);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public Store getOne(String id) {
-        return storeRepository.findById(id)
+    public Store getOne(String storeId) {
+        return storeRepository.findById(storeId)
                 .orElseThrow(() -> {
-                    log.error("Store not found: {}", id);
+                    log.error("Store not found: {}", storeId);
                     return new ResponseStatusException(HttpStatus.NOT_FOUND, StoreResponseMessage.STORE_NOT_FOUND_ERROR);
                 });
     }
@@ -96,10 +95,10 @@ public class StoreServiceImpl implements StoreService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public StoreResponse updateStore(String id, StoreRequest request) {
+    public StoreResponse updateStore(String storeId, StoreRequest request) {
         // Validate the store request
         validationUtil.validate(request);
-        Store store = getOne(id);
+        Store store = getOne(storeId);
         store.setNoSiup(request.getNoSiup());
         store.setName(request.getName());
         store.setAddress(request.getAddress());
@@ -110,11 +109,13 @@ public class StoreServiceImpl implements StoreService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public StoreResponse updateStoreImage(String id, List<MultipartFile> image) {
-        if (Objects.requireNonNull(image.get(0).getOriginalFilename()).isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image should not be empty");
-        if (image.size() > 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
+    public StoreResponse updateStoreImage(String storeId, List<MultipartFile> image) {
+        if (Objects.requireNonNull(image.get(0).getOriginalFilename()).isEmpty())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image should not be empty");
+        if (image.size() > 1)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't send more than one image");
 
-        Store store = getOne(id);
+        Store store = getOne(storeId);
 
         StoreImage storeImage = storeImageService.updateImage(image.get(0), store);
         store.setStoreImage(storeImage);
@@ -127,8 +128,8 @@ public class StoreServiceImpl implements StoreService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public StoreResponse deleteStoreImage(String id) {
-        Store store = getOne(id);
+    public StoreResponse deleteStoreImage(String storeId) {
+        Store store = getOne(storeId);
 
         if (store.getStoreImage() == null) {
             log.warn("Attempted to delete image for store with no existing image: {}", store);
@@ -144,32 +145,43 @@ public class StoreServiceImpl implements StoreService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void deleteStore(String id) {
-        log.info("Deleting store with ID: {}", id);
-        storeRepository.delete(getOne(id));
+    public void deleteStore(String storeId) {
+        log.info("Deleting store with ID: {}", storeId);
+        storeRepository.delete(getOne(storeId));
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<StoreOrderResponse> getAllStoreOrders(String storeId) {
-        Specification<Order> specification = OrderSpecification.storeTransactionDetails(getOne(storeId));
-        List<StoreOrderResponse> orders = orderService.getOrdersBySpecification(specification).stream()
+    public Page<OrderResponse> getAllStoreOrders(String storeId, SearchOrderRequest request) {
+        Specification<Order> specification = OrderSpecification.storeTransactionDetails(
+                getOne(storeId),
+                request.getStartDate(),
+                request.getEndDate(),
+                OrderStatus.fromDescription(request.getOrderStatus()));
+        Sort sortBy = SortUtil.getSort(request.getSort());
+        Pageable pageable = PagingUtil.getPageable(request, sortBy);
+
+        Page<OrderResponse> orders = orderService.getOrdersBySpecification(specification, pageable)
                 .map(o -> {
-                    return StoreOrderResponse.builder()
+                    return OrderResponse.builder()
                             .orderId(o.getId())
                             .customerName(o.getInvoice().getCustomer().getName())
                             .orderStatus(o.getOrderStatus().name())
                             .build();
-                })
-                .toList();
+                });
+
         log.info("Fetched all orders for store ID: {}", storeId);
         return orders;
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void processOrder(String orderId) {
+    public void processOrder(String storeId, String orderId) {
         Order order = orderService.getOne(orderId);
+
+        if (!Objects.equals(order.getOrderDetails().get(0).getProduct().getStore().getId(), storeId))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found");
+
         if (order.getOrderStatus() != OrderStatus.VERIFIED) {
             log.error("Cannot process order with unverified payment: {}", orderId);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot process order with unverified payment");

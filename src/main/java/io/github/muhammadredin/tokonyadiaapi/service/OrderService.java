@@ -3,8 +3,9 @@ package io.github.muhammadredin.tokonyadiaapi.service;
 import io.github.muhammadredin.tokonyadiaapi.constant.OrderStatus;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreOrderDetailResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.OrderDetailResponse;
-import io.github.muhammadredin.tokonyadiaapi.dto.response.StoreOrderResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.Order;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +21,7 @@ public interface OrderService {
 
     void updateOrderStatus(Order order);
 
-    List<Order> getOrdersBySpecification(Specification<Order> specification);
+    Page<Order> getOrdersBySpecification(Specification<Order> specification, Pageable pageable);
 
     StoreOrderDetailResponse getOrderDetailByStoreId(String orderId);
 }

@@ -5,6 +5,7 @@ import io.github.muhammadredin.tokonyadiaapi.constant.APIPath;
 import io.github.muhammadredin.tokonyadiaapi.constant.CustomerResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.constant.ProductResponseMessage;
 import io.github.muhammadredin.tokonyadiaapi.constant.StoreResponseMessage;
+import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchOrderRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.SearchStoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.StoreRequest;
 import io.github.muhammadredin.tokonyadiaapi.service.OrderService;
@@ -21,7 +22,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping(APIPath.STORE_API)
@@ -131,12 +131,26 @@ public class StoreController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') and @permissionEvaluationServiceImpl.storeServiceEval(#id)")
     @GetMapping("/{id}/order")
     public ResponseEntity<?> getAllOrder(
-            @PathVariable String id
+            @PathVariable String id,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String orderStatus,
+            @RequestParam String startDate,
+            @RequestParam String endDate
     ) {
-        return ResponseUtil.buildResponse(
+        SearchOrderRequest request = SearchOrderRequest.builder()
+                .page(page)
+                .size(size)
+                .sort(sort)
+                .orderStatus(orderStatus)
+                .startDate(startDate)
+                .endDate(endDate)
+                .build();
+        return ResponseUtil.buildResponsePaging(
                 HttpStatus.OK,
                 ProductResponseMessage.PRODUCT_GET_SUCCESS,
-                storeService.getAllStoreOrders(id)
+                storeService.getAllStoreOrders(id, request)
         );
     }
 
@@ -159,7 +173,7 @@ public class StoreController {
             @PathVariable String id,
             @PathVariable String orderId
     ) {
-        storeService.processOrder(orderId);
+        storeService.processOrder(id, orderId);
         return ResponseUtil.buildResponse(
                 HttpStatus.OK,
                 StoreResponseMessage.ORDER_PROCESS_SUCCESS,

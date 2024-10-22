@@ -19,7 +19,7 @@ public class OrderDetailResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime orderDate;
     private OrderStatus orderStatus;
-    private Integer totalPrice;
+    private Long totalPrice;
     private ShippingProvider shippingProvider;
     private String shippingAddress;
     private List<ProductOrderResponse> productDetails;
