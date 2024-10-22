@@ -8,11 +8,14 @@ import io.github.muhammadredin.tokonyadiaapi.dto.request.UserAccountRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.ForgotPasswordResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.UserAccount;
 import io.github.muhammadredin.tokonyadiaapi.repository.UserAccountRepository;
+import io.github.muhammadredin.tokonyadiaapi.service.EmailService;
 import io.github.muhammadredin.tokonyadiaapi.service.PasswordResetTokenService;
 import io.github.muhammadredin.tokonyadiaapi.service.UserAccountService;
 import io.github.muhammadredin.tokonyadiaapi.util.ValidationUtil;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -31,9 +34,29 @@ import java.util.Optional;
 public class UserAccountServiceImpl implements UserAccountService {
     private final UserAccountRepository userAccountRepository;
     private final PasswordResetTokenService passwordResetTokenService;
-    private final EmailServiceImpl emailService;
+    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final ValidationUtil validationUtil;
+
+    @Value("${tokonyadia.user-password}")
+    private String ADMIN_USERNAME;
+
+    @Value("${tokonyadia.user-password}")
+    private String ADMIN_PASSWORD;
+
+    @Transactional(rollbackFor = Exception.class)
+    @PostConstruct
+    public void initAdmin() {
+        if (loadUserByUsername(ADMIN_USERNAME) == null) return;
+
+        UserAccount userAccount = UserAccount.builder()
+                .username(ADMIN_USERNAME)
+                .password(passwordEncoder.encode(ADMIN_PASSWORD))
+                .role(UserRole.ROLE_ADMIN)
+                .build();
+
+        userAccountRepository.saveAndFlush(userAccount);
+    }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -102,8 +125,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             String token = passwordResetTokenService.generatePasswordResetToken(userAccount.getId());
             String url = "localhost:8081/api/user/reset-password?token=" + token;
 
-            // TODO: Gunakan java mail ketika sudah di production
-//            emailService.sendPasswordResetEmail(userAccount.getEmail(), url);
+            emailService.sendPasswordResetEmail(userAccount.getEmail(), url);
 
             // TODO: Jangan gunakan ForgotPasswordResponse di production, return harus diubah void
             return ForgotPasswordResponse.builder()
