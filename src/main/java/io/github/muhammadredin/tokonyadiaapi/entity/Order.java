@@ -5,6 +5,7 @@ import io.github.muhammadredin.tokonyadiaapi.constant.OrderStatus;
 import io.github.muhammadredin.tokonyadiaapi.constant.TableName;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,9 +15,9 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Builder
+@SuperBuilder
 @Table(name = TableName.ORDER_TABLE)
-public class Order {
+public class Order extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;

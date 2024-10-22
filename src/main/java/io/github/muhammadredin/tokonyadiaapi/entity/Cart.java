@@ -3,15 +3,16 @@ package io.github.muhammadredin.tokonyadiaapi.entity;
 import io.github.muhammadredin.tokonyadiaapi.constant.TableName;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 @Entity
 @Table(name = TableName.CART_TABLE)
-public class Cart {
+public class Cart extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;

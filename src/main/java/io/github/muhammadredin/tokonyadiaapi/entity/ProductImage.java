@@ -2,15 +2,16 @@ package io.github.muhammadredin.tokonyadiaapi.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Entity
 @Table(name = "m_product_image")
-public class ProductImage {
+public class ProductImage extends Auditable{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;

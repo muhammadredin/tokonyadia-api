@@ -2,6 +2,7 @@ package io.github.muhammadredin.tokonyadiaapi.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
@@ -9,8 +10,8 @@ import lombok.*;
 @AllArgsConstructor
 @Entity
 @Table(name = "m_customer_image")
-@Builder
-public class CustomerImage {
+@SuperBuilder
+public class CustomerImage extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;

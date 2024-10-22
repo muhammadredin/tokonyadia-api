@@ -3,6 +3,7 @@ package io.github.muhammadredin.tokonyadiaapi.entity;
 import io.github.muhammadredin.tokonyadiaapi.constant.TableName;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.HashSet;
 import java.util.List;
@@ -13,9 +14,9 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-@Builder
+@SuperBuilder
 @Table(name = TableName.PRODUCT_TABLE)
-public class Product {
+public class Product extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;

@@ -180,7 +180,9 @@ public class TransactionServiceImpl implements TransactionService {
 
             case "settlement":
                 Invoice settlementInvoice = invoiceService.setInvoiceStatus(invoiceId, status);
-                for (Order order : settlementInvoice.getOrder()) {
+                List<Order> settledOrders = settlementInvoice.getOrder();
+                for (int i = 0; i < settledOrders.size(); i++) {
+                    Order order = settledOrders.get(i);
                     order.setOrderStatus(OrderStatus.VERIFIED);
                     orderService.updateOrderStatus(order);
                 }
@@ -191,7 +193,9 @@ public class TransactionServiceImpl implements TransactionService {
 
             case "expire":
                 Invoice expiredInvoice = invoiceService.setInvoiceStatus(invoiceId, status);
-                for (Order order : expiredInvoice.getOrder()) {
+                List<Order> expiredOrders = expiredInvoice.getOrder();
+                for (int i = 0; i < expiredOrders.size(); i++) {
+                    Order order = expiredOrders.get(i);
                     order.setOrderStatus(OrderStatus.CANCELLED);
                     orderService.updateOrderStatus(order);
                 }

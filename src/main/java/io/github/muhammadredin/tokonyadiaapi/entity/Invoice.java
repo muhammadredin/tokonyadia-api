@@ -5,6 +5,7 @@ import io.github.muhammadredin.tokonyadiaapi.constant.TableName;
 import io.github.muhammadredin.tokonyadiaapi.constant.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,10 +15,10 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Entity
 @Table(name = TableName.INVOICE_TABLE)
-public class Invoice {
+public class Invoice extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;

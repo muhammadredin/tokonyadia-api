@@ -4,6 +4,7 @@ import io.github.muhammadredin.tokonyadiaapi.constant.TableName;
 import io.github.muhammadredin.tokonyadiaapi.constant.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,9 +17,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Builder
+@SuperBuilder
 @Table(name = TableName.USER_ACCOUNT_TABLE)
-public class UserAccount implements UserDetails {
+public class UserAccount extends Auditable implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

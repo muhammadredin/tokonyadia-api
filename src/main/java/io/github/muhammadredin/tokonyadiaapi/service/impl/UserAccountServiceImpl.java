@@ -47,7 +47,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     @Transactional(rollbackFor = Exception.class)
     @PostConstruct
     public void initAdmin() {
-        if (loadUserByUsername(ADMIN_USERNAME) == null) return;
+        if (userAccountRepository.findByUsername(ADMIN_USERNAME).isEmpty()) return;
 
         UserAccount userAccount = UserAccount.builder()
                 .username(ADMIN_USERNAME)

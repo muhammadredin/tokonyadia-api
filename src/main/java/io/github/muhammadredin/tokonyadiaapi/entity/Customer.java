@@ -3,6 +3,7 @@ package io.github.muhammadredin.tokonyadiaapi.entity;
 import io.github.muhammadredin.tokonyadiaapi.constant.TableName;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 import java.util.Set;
@@ -11,10 +12,10 @@ import java.util.Set;
 @NoArgsConstructor
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @Entity
 @Table(name = TableName.CUSTOMER_TABLE)
-public class Customer {
+public class Customer extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;

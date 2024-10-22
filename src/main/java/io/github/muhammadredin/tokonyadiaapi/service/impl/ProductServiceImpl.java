@@ -47,11 +47,6 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public ProductResponse createProduct(ProductRequest request, Store store, List<MultipartFile> images) {
-        UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        if (!userAccount.getStore().getId().equals(store.getId()))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-
         log.info("Creating product for store: {}", store.getId());
 
         List<String> errors = checkProduct(store.getId());
