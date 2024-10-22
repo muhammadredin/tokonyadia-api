@@ -20,4 +20,6 @@ public class InvoiceResponse {
     private LocalDateTime expiryDate;
     private Long grossAmount;
     private TransactionStatus transactionStatus;
+    private String paymentId;
+    private String paymentLink;
 }

@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface TransactionService {
     @Transactional(rollbackFor = Exception.class)
-    MidtransSnapResponse checkoutCart(CheckoutRequest request);
+    InvoiceResponse checkoutCart(CheckoutRequest request);
 
     @Transactional(rollbackFor = Exception.class)
     void updateInvoiceStatus(MidtransNotification notification);

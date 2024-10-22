@@ -1,13 +1,11 @@
 package io.github.muhammadredin.tokonyadiaapi.service.impl;
 
 import io.github.muhammadredin.tokonyadiaapi.client.MidtransAppClient;
-import io.github.muhammadredin.tokonyadiaapi.constant.OrderStatus;
-import io.github.muhammadredin.tokonyadiaapi.constant.PaymentResponseMessage;
-import io.github.muhammadredin.tokonyadiaapi.constant.PaymentType;
-import io.github.muhammadredin.tokonyadiaapi.constant.ShippingProvider;
+import io.github.muhammadredin.tokonyadiaapi.constant.*;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.CheckoutRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.OrderRequest;
 import io.github.muhammadredin.tokonyadiaapi.dto.request.midtransRequest.*;
+import io.github.muhammadredin.tokonyadiaapi.dto.response.InvoiceResponse;
 import io.github.muhammadredin.tokonyadiaapi.dto.response.midtransResponse.MidtransSnapResponse;
 import io.github.muhammadredin.tokonyadiaapi.entity.*;
 import io.github.muhammadredin.tokonyadiaapi.service.*;
@@ -45,7 +43,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public MidtransSnapResponse checkoutCart(CheckoutRequest request) {
+    public InvoiceResponse checkoutCart(CheckoutRequest request) {
         // Validate the checkout request
         validationUtil.validate(request);
         Long totalPayment = 0L;
@@ -151,9 +149,10 @@ public class TransactionServiceImpl implements TransactionService {
         // Update the invoice with Midtrans token and amount
         invoice.setMidtransToken(midtransResponse.getToken());
         invoice.setGrossAmount(totalPayment);
+        invoice.setTransactionStatus(TransactionStatus.PENDING);
         invoiceService.createInvoice(invoice);
 
-        return midtransResponse;
+        return invoiceService.toInvoiceResponse(invoice);
     }
 
     @Transactional(rollbackFor = Exception.class)

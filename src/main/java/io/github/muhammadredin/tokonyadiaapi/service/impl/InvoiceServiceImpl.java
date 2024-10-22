@@ -122,14 +122,16 @@ public class InvoiceServiceImpl implements InvoiceService {
         return updatedInvoice;
     }
 
+    @Override
     public InvoiceResponse toInvoiceResponse(Invoice invoice) {
-        log.debug("Converting invoice to response: {}", invoice.getId());
         return InvoiceResponse.builder()
                 .id(invoice.getId())
-                .expiryDate(invoice.getExpiryTime())
                 .paymentType(invoice.getPaymentType())
-                .grossAmount(invoice.getGrossAmount())
                 .transactionStatus(invoice.getTransactionStatus())
+                .expiryDate(invoice.getExpiryTime())
+                .grossAmount(invoice.getGrossAmount())
+                .paymentId(invoice.getMidtransToken())
+                .paymentLink("https://app.sandbox.midtrans.com/snap/v4/redirection/" + invoice.getMidtransToken())
                 .build();
     }
 }

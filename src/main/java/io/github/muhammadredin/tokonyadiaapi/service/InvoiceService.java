@@ -16,4 +16,6 @@ public interface InvoiceService {
     Invoice getOne(String id);
 
     Invoice setInvoiceStatus(String invoiceId, String transactionStatus);
+
+    InvoiceResponse toInvoiceResponse(Invoice invoice);
 }
