@@ -91,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
                     .build();
         } catch (Exception e) {
             log.error("Error during token refresh for refreshToken: {}. Error message: {}", refreshToken, e.getMessage(), e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
 
